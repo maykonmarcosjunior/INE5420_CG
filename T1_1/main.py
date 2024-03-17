@@ -20,8 +20,8 @@ Ex.: Se um objeto for um quadrado, ele deve ser exibido como tal.
 from src import DisplayFile as DF
 
 def main():
-    App = DF()
+    App = DF.DisplayFile()
     App.run("INE5420 - Sistema Gráfico Interativo", 960, 720)
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()

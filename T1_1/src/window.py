@@ -18,8 +18,6 @@ class Window:
         
         self.__create_viewport_frame()
         self.__create_options_frame()
-        
-        self.__root.mainloop()
 
     def __create_viewport_frame(self):
         self.__viewport_frame = tk.Frame(self.__root)
@@ -46,9 +44,9 @@ class Window:
         
         # List of objects on the DisplayFile
         # TODO: Fazer a listbox mudar quando um objeto for inserido
-        object_list_var = tk.Variables(value=[])
+        object_list_var = tk.Variable(value=[])
         
-        self.__objects_listbox = tk.ListBox(self.__options_frame, listvariable=object_list_var, height=10)
+        self.__objects_listbox = tk.Listbox(self.__options_frame, listvariable=object_list_var, height=10)
         self.__objects_listbox.pack()
         objects_scrollbar = tk.Scrollbar(self.__options_frame, orient=tk.VERTICAL, command=self.__objects_listbox.yview)
         
@@ -82,8 +80,11 @@ class Window:
                 self.__viewport.create_line(coords, coords[0], coords[1], fill="black")
 
     def get_object(self):
-        pass
+        return input("digite o objeto")
 
     def is_active(self):
         return self.__is_active
 
+
+    def __open_draw_window(self):
+        pass
