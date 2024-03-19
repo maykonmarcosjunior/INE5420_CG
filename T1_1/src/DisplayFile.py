@@ -9,6 +9,5 @@ class DisplayFile:
         print("Window created")
         while window.is_active():
             new_obj = window.get_object()
-            print(new_obj)
             self.__objects.append(new_obj)
-            # window.draw(self.__objects)
+            window.draw(self.__objects)

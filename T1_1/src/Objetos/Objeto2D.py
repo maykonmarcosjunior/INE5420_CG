@@ -11,5 +11,5 @@ class Objeto2D:
         return self.__name
     
     @property
-    def coords(self) -> list[tuple[float]]:
+    def coordinates(self) -> list[tuple[float]]:
         return self.__coords

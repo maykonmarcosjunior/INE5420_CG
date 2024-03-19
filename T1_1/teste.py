@@ -109,5 +109,8 @@ while True:
         create_object()
     elif action.lower() == "sair":
         break
+    elif action.lower() == "zoom in":
+        display_file.zoom_in()
+        draw_canvas()
 
 root.mainloop()

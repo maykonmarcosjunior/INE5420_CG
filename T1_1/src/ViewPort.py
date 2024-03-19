@@ -1,7 +1,8 @@
 import tkinter as tk
-from src.Objetos import Ponto2D
-from src.Objetos import Linha2D
-from src.Objetos import WireFrame
+from src.Objetos import Ponto2D as P2D
+from src.Objetos import Linha2D as L2D
+from src.Objetos import WireFrame as WF
+from src.Objetos import Objeto2D as Obj2D
 
 
 
@@ -20,6 +21,9 @@ class ViewPort(tk.Canvas):
         self.configure(scrollregion=self.bbox("all"))
         
         self.__zoom_factor = 0.1
+        self.__pan_x = 0
+        self.__pan_y = 0
+        self.__zoom = 1.0
         
     def __pan_start(self, event):
         self.scan_mark(event.x, event.y)
@@ -33,8 +37,8 @@ class ViewPort(tk.Canvas):
     def zoom_out(self):
         self.scale("all", 0, 0, 1 - self.__zoom_factor, 1 - self.__zoom_factor)
 
-    def viewport_transform(self, x, y):
-        vx = (x - self.pan_x) / self.zoom
-        vy = self.__height - (y - self.pan_y) / self.zoom
-        return vx, vy
+    def viewport_transform(self, x:float, y:float) -> list[float]:
+        vx = (x - self.__pan_x) / self.__zoom
+        vy = self.__height - (y - self.__pan_y) / self.__zoom
+        return [vx, vy]
         
