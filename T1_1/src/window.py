@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import ast  # Importar o módulo ast para avaliar a string como expressão Python
+import sys
 
-# from src.ViewPort import ViewPort as VP
 from src.WindowUtils import ObjectListFrame, DrawWindow
 import src.ViewPort as VP
 
@@ -10,7 +10,7 @@ import src.ViewPort as VP
 class Window:
     def __init__(self, title="Window", width=960, height=720):
         self.__object_list = []
-        
+
         self.__is_active = True
         self.__root = tk.Tk()
 
@@ -34,7 +34,7 @@ class Window:
 
     def __create_viewport_frame(self):
         self.__viewport_frame = tk.Frame(self.__root)
-        self.__viewport_frame.pack(side="right", fill=tk.BOTH, padx=(0, 40))
+        self.__viewport_frame.pack(side="right", fill=tk.BOTH, padx=(0, 30))
 
         # Title: Viewport
         tk.Label(
@@ -47,7 +47,7 @@ class Window:
 
     def __create_options_frame(self):
         self.__options_frame = tk.Frame(self.__root)
-        self.__options_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=(50, 0))
+        self.__options_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=(40, 0))
 
         # Title: Function Menu
         tk.Label(
@@ -67,21 +67,38 @@ class Window:
         self.__object_list_frame.pack(fill=tk.X)
 
         # Zoom buttons
-        left_space = 400
+        zoom_frame = tk.Frame(self.__options_frame)
+        zoom_frame.pack(pady=10)
 
         zoom_out_button = tk.Button(
-            self.__options_frame, text="-", command=self.__viewport.zoom_out
+            zoom_frame, text="-", command=self.__viewport.zoom_out
         )
-        zoom_out_button.pack(side=tk.LEFT, pady=(10, left_space))
+        zoom_out_button.pack(side=tk.LEFT, pady=10)
 
-        tk.Label(self.__options_frame, text="Zoom").pack(
-            side=tk.LEFT, padx=30, pady=(10, left_space)
-        )
+        tk.Label(zoom_frame, text="Zoom").pack(side=tk.LEFT, padx=30, pady=10)
 
         zoom_in_button = tk.Button(
-            self.__options_frame, text="+", command=self.__viewport.zoom_in
+            zoom_frame, text="+", command=self.__viewport.zoom_in
         )
-        zoom_in_button.pack(side=tk.LEFT, pady=(10, left_space))
+        zoom_in_button.pack(side=tk.LEFT, pady=10)
+
+        nav_frame = tk.Frame(self.__options_frame)
+        nav_frame.pack(pady=10)
+
+        tk.Label(nav_frame, text="Navigation").pack(padx=30)
+
+        tk.Button(
+            nav_frame, text="Up", command=lambda: self.__viewport.pan_y(10)
+        ).pack(side=tk.LEFT)
+        tk.Button(
+            nav_frame, text="Down", command=lambda: self.__viewport.pan_y(-10)
+        ).pack(side=tk.LEFT)
+        tk.Button(
+            nav_frame, text="Left", command=lambda: self.__viewport.pan_x(-10)
+        ).pack(side=tk.LEFT)
+        tk.Button(
+            nav_frame, text="Right", command=lambda: self.__viewport.pan_x(10)
+        ).pack(side=tk.LEFT)
 
     def draw(self, objects: list[VP.Obj2D.Objeto2D]):
         self.__viewport.delete("all")
@@ -110,7 +127,7 @@ class Window:
             # name, coords = input("digite o objeto: nome - coordenadas\n").split(" - ")
             name, coords = self.__open_draw_window()
             if name is None or coords is None:
-                messagebox.showinfo("Information","The object was not created")
+                messagebox.showinfo("Information", "The object was not created")
 
             f_coords = self.__string_to_float_tuple_list(coords)
             if len(f_coords) == 1:
@@ -122,6 +139,8 @@ class Window:
             else:
                 output = VP.WF.WireFrame(name, f_coords)
                 self.__viewport.draw_wireframe(output.coordinates)
+
+            self.__viewport.display_file.append(output)
             self.__update_object_list(output)
             return output
         except Exception as e:
