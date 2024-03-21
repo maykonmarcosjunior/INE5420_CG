@@ -17,11 +17,11 @@ Código para parsing:
 A transformada de viewport não deve distorcer os objetos.
 Ex.: Se um objeto for um quadrado, ele deve ser exibido como tal.
 '''
-from src import DisplayFile as DF
+from src.App import App
 
 def main():
-    App = DF.DisplayFile()
-    App.run("INE5420 - Sistema Gráfico Interativo", 960, 720)
+    Aplicativo = App("INE5420 - Sistema Gráfico Interativo", 960, 720)
+    # App.run()
 
 if __name__ == "__main__":
     main()
