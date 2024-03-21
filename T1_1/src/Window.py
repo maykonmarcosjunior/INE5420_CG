@@ -6,9 +6,8 @@ from src.Objetos import Objeto2D as Obj2D
 
 class Window:
     def __init__(self, master=None, width_=600, height_=400):
-        
         self.__viewport_frame = tk.Frame(master)
-        self.__viewport_frame.pack(side="right", fill=tk.BOTH, padx=(0, 30))
+        self.__viewport_frame.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(0, 80))
 
         # Title: Viewport
         tk.Label(

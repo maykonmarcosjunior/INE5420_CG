@@ -12,13 +12,19 @@ class App:
     def __init__(self, title="Window", width=960, height=720):
         self.__root = tk.Tk()
 
-        self.__display_file = DF.DisplayFile(self.__root)
+        self.__left_frame = tk.Frame(self.__root)
+        self.__left_frame.pack(side=tk.LEFT, padx=(80, 0), fill=tk.X)
+
+        tk.Label(self.__left_frame, text="Object List", font="System 12 bold").pack(
+            fill=tk.X
+        )
+        self.__display_file = DF.DisplayFile(self.__left_frame)
 
         self.__root.title(title)
         self.__root.geometry(f"{width}x{height}")
         self.__root.resizable(False, False)
 
-        self.__window = WW.Window(self.__root)
+        self.__window = WW.Window(self.__root, 740, 740)
 
         self.__options_frame = None
 
@@ -30,58 +36,24 @@ class App:
         )
         self.__root.mainloop()
 
-    # TODO: Criar uma classe para representar esse frame (as funções devem ser passadas)
     def __create_options_frame(self):
-        self.__options_frame = tk.Frame(self.__root)
-        self.__options_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=(40, 0))
+        self.__options_frame = W_U.OptionsFrame(self.__left_frame)
+        self.__options_frame.pack(fill=tk.BOTH)
 
-        # Title: Function Menu
-        tk.Label(
-            self.__options_frame, text="Function Menu", font="System 12 bold", pady=5
-        ).pack(fill=tk.X, padx=(5, 0))
+        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object", pady=20)
 
-        # Button: Draw Object
-        self.__add_object_button = tk.Button(
-            self.__options_frame, text="Draw Object", command=self.__get_object
-        )
-        self.__add_object_button.pack(pady=20)
+        # Window Zoom
+        self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT, pady=10)
+        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, pady=10)
+        self.__options_frame.add_button(button_text="+", function=lambda: self.__zoom_window("in"), parent="zoom", side=tk.LEFT, pady=10)
 
-        # Title and List of objects on the DisplayFile
-        tk.Label(self.__options_frame, text="Object List").pack(fill=tk.X)
+        # Window Navigation
+        self.__options_frame.add_label(label_text="Navigation", parent="nav", padx=30)
 
-        # Zoom buttons
-        zoom_frame = tk.Frame(self.__options_frame)
-        zoom_frame.pack(pady=10)
-
-        zoom_out_button = tk.Button(
-            zoom_frame, text="-", command=lambda: self.__zoom_window('out')
-        )
-        zoom_out_button.pack(side=tk.LEFT, pady=10)
-
-        tk.Label(zoom_frame, text="Zoom").pack(side=tk.LEFT, padx=30, pady=10)
-
-        zoom_in_button = tk.Button(
-            zoom_frame, text="+", command=lambda: self.__zoom_window('in')
-        )
-        zoom_in_button.pack(side=tk.LEFT, pady=10)
-
-        nav_frame = tk.Frame(self.__options_frame)
-        nav_frame.pack(pady=10)
-
-        tk.Label(nav_frame, text="Navigation").pack(padx=30)
-
-        tk.Button(
-            nav_frame, text="Up", command=lambda: self.__pan_window('y', 10)
-        ).pack(side=tk.LEFT)
-        tk.Button(
-            nav_frame, text="Down", command=lambda: self.__pan_window('y', -10)
-        ).pack(side=tk.LEFT)
-        tk.Button(
-            nav_frame, text="Left", command=lambda: self.__pan_window('x', -10)
-        ).pack(side=tk.LEFT)
-        tk.Button(
-            nav_frame, text="Right", command=lambda: self.__pan_window('x', 10)
-        ).pack(side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Up", function=lambda: self.__pan_window("y", 10), parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Down", function=lambda: self.__pan_window("y", -10), parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Right", function=lambda: self.__pan_window("x", 10), parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Left", function=lambda: self.__pan_window("x", -10), parent="nav",side=tk.LEFT)
 
     def __get_object(self) -> list[tuple[float]]:
         try:
@@ -136,9 +108,9 @@ class App:
         elif axis == 'y':
             self.__window.pan_y(amount)
         self.__draw_all_objects()
-    
+
     def __zoom_window(self, zoom_type: str):
-        if zoom_type == "in":
+        if zoom_type == 'in':
             self.__window.zoom_in()
         elif zoom_type == 'out':
             self.__window.zoom_out()

@@ -20,7 +20,7 @@ Ex.: Se um objeto for um quadrado, ele deve ser exibido como tal.
 from src.App import App
 
 def main():
-    Aplicativo = App("INE5420 - Sistema Gráfico Interativo", 960, 720)
+    Aplicativo = App("INE5420 - Sistema Gráfico Interativo", 1280, 800)
     # App.run()
 
 if __name__ == "__main__":
