@@ -80,7 +80,7 @@ class App:
 
     def __string_to_float_tuple_list(self, string):
         # Remover parênteses externos e dividir a string em substrings de tuplas
-        tuples = string.strip("()").split("),(")
+        tuples = string.strip("()").split("), (")
         # Converter cada substring em uma tupla de floats
         tuple_list = []
         for t in tuples:
