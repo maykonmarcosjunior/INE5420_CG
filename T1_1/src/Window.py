@@ -21,6 +21,9 @@ class Window:
         self.__xwmax = width_
         self.__ywmax = height_
 
+        self.__min_width = 20
+        self.__min_height = 20
+
     def draw_object(self, object: Obj2D.Objeto2D):
         if object.obj_type == "Point":
             self.draw_point(object.coordinates[0])
@@ -46,8 +49,11 @@ class Window:
     def delete(self, object_name="all"):
         if object_name == "all":
             self.__viewport.delete("all")
-    
+
     def __zoom(self, c_xwmin: int, c_xwmax: int, c_ywmin: int, c_ywmax: int) -> None:
+        if self.__is_min_size():
+            return
+
         self.__xwmin += c_xwmin
         self.__xwmax += c_xwmax
         self.__ywmin += c_ywmin
@@ -66,3 +72,9 @@ class Window:
     def pan_y(self, change: int) -> None:
         self.__ywmin += change
         self.__ywmax += change
+
+    def __is_min_size(self) -> bool:
+        if (self.__xwmax - self.__xwmin == self.__min_width) or (self.__ywmax - self.__ywmin == self.__min_height):
+            print("Maximum zoom reached!")
+            return True
+        return False
