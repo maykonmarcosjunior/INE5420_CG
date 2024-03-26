@@ -1,9 +1,11 @@
 import numpy as np
 
+
 class Objeto2D:
-    def __init__(self, name: str, coords:list[tuple[float]], obj_type=None):
+    def __init__(self, name: str, coords: list[tuple[float]], obj_type=None, color="#000000"):
         self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
-    
+        self.__color = color
+
     def geometric_center(self) -> tuple[float]:
         return tuple(np.mean(self.__coords, axis=0))
     
@@ -41,6 +43,10 @@ class Objeto2D:
     def obj_type(self) -> str:
         return self.__obj_type
     
+    @property
+    def color(self) -> str:
+        return self.__color
+
     def __str__(self):
         coords = [tuple(round(i, 2) for i in j) for j in self.__coords]
         return f"{self.obj_type}: - {self.__name} - {coords}"

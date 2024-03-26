@@ -29,25 +29,25 @@ class Window:
 
     def draw_object(self, object: Obj2D.Objeto2D):
         if object.obj_type == "Point":
-            self.draw_point(object.coordinates[0])
+            self.draw_point(object.coordinates[0], object.color)
         elif object.obj_type == "Line":
-            self.draw_line(object.coordinates)
+            self.draw_line(object.coordinates, object.color)
         elif object.obj_type == "Wireframe":
-            self.draw_wireframe(object.coordinates)
+            self.draw_wireframe(object.coordinates, object.color)
 
-    def draw_point(self, coords: tuple[float]) -> None:
+    def draw_point(self, coords: tuple[float], color: str) -> None:
         vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
-        self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill="black")
+        self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill=color, outline=color)
 
-    def draw_line(self, coords: list[tuple[float]]) -> None:
+    def draw_line(self, coords: list[tuple[float]], color: str) -> None:
         vp_x_min, vp_y_min = self.__viewport.viewport_transform(coords[0][0], coords[0][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
         vp_x_max, vp_y_max = self.__viewport.viewport_transform(coords[1][0], coords[1][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
-        self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, fill="black", width=self.__width_drawings)
+        self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, fill=color, width=self.__width_drawings)
 
-    def draw_wireframe(self, coords: list[tuple[float]]) -> None:
+    def draw_wireframe(self, coords: list[tuple[float]], color: str) -> None:
         for i in range(len(coords) - 1):
-            self.draw_line([coords[i], coords[i + 1]])
-        self.draw_line([coords[-1], coords[0]])
+            self.draw_line([coords[i], coords[i + 1]], color)
+        self.draw_line([coords[-1], coords[0]], color)
 
     def __update_width_drawings(self, zoom_type: str):
         current_window_size = self.__xwmax - self.__xwmin

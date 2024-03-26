@@ -57,20 +57,20 @@ class App:
 
     def __get_object(self) -> list[tuple[float]]:
         try:
-            name, coords = self.__open_draw_window()
+            name, coords, color = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
             if len(f_coords) == 1:
-                output = P2D.Ponto2D(name, f_coords)
-                self.__window.draw_point(output.coordinates[0])
+                output = P2D.Ponto2D(name, f_coords, color=color)
+                self.__window.draw_point(output.coordinates[0], color)
             elif len(f_coords) == 2:
-                output = L2D.Linha2D(name, f_coords)
-                self.__window.draw_line(output.coordinates)
+                output = L2D.Linha2D(name, f_coords, color=color)
+                self.__window.draw_line(output.coordinates, color)
             else:
-                output = WF.WireFrame(name, f_coords)
-                self.__window.draw_wireframe(output.coordinates)
+                output = WF.WireFrame(name, f_coords, color=color)
+                self.__window.draw_wireframe(output.coordinates, color)
 
             self.__update_display_file(output)
             return output
@@ -90,8 +90,8 @@ class App:
 
     def __open_draw_window(self):
         self.__draw_window = W_U.DrawWindow(self.__root)
-        name, coords = self.__draw_window.show_window()
-        return name, coords
+        name, coords, color = self.__draw_window.show_window()
+        return name, coords, color
 
     def __draw_all_objects(self):
         self.__window.delete("all")

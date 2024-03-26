@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import colorchooser
 from typing import Callable
 
 
@@ -7,6 +8,7 @@ class DrawWindow(tk.Toplevel):
         super().__init__(master)
         self.__coordinates_str = None  # Value to be returned
         self.__name_str = None
+        self.__color = "#000000"
 
         self.title("Draw Options")
         self.geometry(f"{width}x{height}")
@@ -21,19 +23,31 @@ class DrawWindow(tk.Toplevel):
         self.__coord_entry = tk.Entry(self)
         self.__coord_entry.pack(fill=tk.X, padx=20)
 
-        tk.Button(self, text="Submit", command=self.__submit_option).pack(pady=10)
+        tk.Button(self, text="Choose Color", command=self.__choose_color).pack(pady=(20, 0))
+
+        tk.Label(self, text="Selected Color:").pack(pady=10)
+        self.__selected_color_label = tk.Label(self, bg=self.__color, width=5, height=1)
+        self.__selected_color_label.pack()
+
+        tk.Button(self, text="Submit", command=self.__submit_option).pack(pady=(20, 0))
 
     def show_window(self):
         self.wait_window()
-        return self.get_name_and_coordinates()
+        return self.get_informations()
 
     def __submit_option(self):
         self.__coordinates_str = self.__coord_entry.get()
         self.__name_str = self.__object_name.get()
         self.destroy()
 
-    def get_name_and_coordinates(self) -> tuple[str, str]:
-        return self.__name_str, self.__coordinates_str
+    def get_informations(self) -> tuple[str, str, str]:
+        return self.__name_str, self.__coordinates_str, self.__color
+
+    def __choose_color(self):
+        color = colorchooser.askcolor("#000000", title="Choose color")[1]
+        if color:
+            self.__selected_color_label.config(bg=color)
+            self.__color = color
 
 
 class OptionsFrame(tk.Frame):
