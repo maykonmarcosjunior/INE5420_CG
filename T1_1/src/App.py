@@ -58,8 +58,8 @@ class App:
     def __get_object(self) -> list[tuple[float]]:
         try:
             name, coords = self.__open_draw_window()
-            if name is None or coords is None:
-                messagebox.showinfo("Information", "The object was not created")
+            if name is None or coords is None or not name.strip() or not coords.strip():
+                messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
             if len(f_coords) == 1:
@@ -80,7 +80,7 @@ class App:
 
     def __string_to_float_tuple_list(self, string):
         # Remover parênteses externos e dividir a string em substrings de tuplas
-        tuples = string.strip("()").split("), (")
+        tuples = string.strip("()").split("),(")
         # Converter cada substring em uma tupla de floats
         tuple_list = []
         for t in tuples:
