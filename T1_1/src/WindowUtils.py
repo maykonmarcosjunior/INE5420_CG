@@ -3,7 +3,7 @@ from typing import Callable
 
 
 class DrawWindow(tk.Toplevel):
-    def __init__(self, master=None, height=300, width=400):
+    def __init__(self, master=None, height=400, width=600):
         super().__init__(master)
         self.__coordinates_str = None  # Value to be returned
         self.__name_str = None
@@ -16,7 +16,7 @@ class DrawWindow(tk.Toplevel):
         self.__object_name.pack(fill=tk.X, padx=20)
 
         tk.Label(
-            self, text='Enter Coordinates (in the format "(x1, y1),(x2, y2),..."):'
+            self, text='Enter Coordinates (in the format "((x1, y1),(x2, y2),...)"):'
         ).pack(pady=(10, 0))
         self.__coord_entry = tk.Entry(self)
         self.__coord_entry.pack(fill=tk.X, padx=20)
