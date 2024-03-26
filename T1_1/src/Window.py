@@ -24,6 +24,9 @@ class Window:
         self.__min_width = 20
         self.__min_height = 20
 
+        self.__zoom_step = 10
+        self.__width_drawings = 2
+
     def draw_object(self, object: Obj2D.Objeto2D):
         if object.obj_type == "Point":
             self.draw_point(object.coordinates[0])
@@ -34,24 +37,29 @@ class Window:
 
     def draw_point(self, coords: tuple[float]) -> None:
         vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
-        self.__viewport.create_oval(vp_x - 1, vp_y - 1, vp_x + 1, vp_y + 1, fill="black")
+        self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill="black")
 
     def draw_line(self, coords: list[tuple[float]]) -> None:
         vp_x_min, vp_y_min = self.__viewport.viewport_transform(coords[0][0], coords[0][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
         vp_x_max, vp_y_max = self.__viewport.viewport_transform(coords[1][0], coords[1][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
-        self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, fill="black", width=2)
+        self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, fill="black", width=self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]]) -> None:
         for i in range(len(coords) - 1):
             self.draw_line([coords[i], coords[i + 1]])
         self.draw_line([coords[-1], coords[0]])
 
+    def __update_width_drawings(self, zoom_type: str):
+        current_window_size = self.__xwmax - self.__xwmin
+        last_size = current_window_size - (2 * self.__zoom_step) if zoom_type == "out" else current_window_size + (2 * self.__zoom_step)
+        self.__width_drawings *= last_size / current_window_size
+
     def delete(self, object_name="all"):
         if object_name == "all":
             self.__viewport.delete("all")
 
     def __zoom(self, c_xwmin: int, c_xwmax: int, c_ywmin: int, c_ywmax: int) -> None:
-        if self.__is_min_size():
+        if self.__is_min_size() and c_xwmin > 0:
             return
 
         self.__xwmin += c_xwmin
@@ -59,11 +67,14 @@ class Window:
         self.__ywmin += c_ywmin
         self.__ywmax += c_ywmax
 
+        zoom_type = "in" if c_xwmin > 0 else "out"
+        self.__update_width_drawings(zoom_type)
+
     def zoom_in(self) -> None:
-        self.__zoom(10, -10, 10, -10)
+        self.__zoom(self.__zoom_step, -self.__zoom_step, self.__zoom_step, -self.__zoom_step)
 
     def zoom_out(self) -> None:
-        self.__zoom(-10, 10, -10, 10)
+        self.__zoom(-self.__zoom_step, self.__zoom_step, -self.__zoom_step, self.__zoom_step)
 
     def pan_x(self, change: int) -> None:
         self.__xwmin += change
