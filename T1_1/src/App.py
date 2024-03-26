@@ -115,3 +115,12 @@ class App:
         elif zoom_type == 'out':
             self.__window.zoom_out()
         self.__draw_all_objects()
+
+    def __translate_object(self, object: Obj2D.Objeto2D, x=10.0, y=10.0):
+        object.translation(x, y)
+
+    def __enlarge_object(self, object: Obj2D.Objeto2D, factor=1.1):
+        object.enlargement(factor)
+
+    def __rotate_object(self, object: Obj2D.Objeto2D, angle: float=0.1, center: tuple[float]=(0.0, 0.0)):
+        object.rotation(angle, center)
