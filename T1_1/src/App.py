@@ -15,11 +15,8 @@ class App:
         self.__left_frame = tk.Frame(self.__root)
         self.__left_frame.pack(side=tk.LEFT, padx=(80, 0), fill=tk.X)
 
-        tk.Label(self.__left_frame, text="Object List", font="System 12 bold").pack(
-            fill=tk.X
-        )
         self.__display_file = DF.DisplayFile(self.__left_frame)
-
+        self.__display_file.add_draw_function(self.__draw_all_objects)
         self.__root.title(title)
         self.__root.geometry(f"{width}x{height}")
         self.__root.resizable(False, False)
@@ -115,12 +112,3 @@ class App:
         elif zoom_type == 'out':
             self.__window.zoom_out()
         self.__draw_all_objects()
-
-    def __translate_object(self, object: Obj2D.Objeto2D, x=10.0, y=10.0):
-        object.translation(x, y)
-
-    def __enlarge_object(self, object: Obj2D.Objeto2D, factor=1.1):
-        object.enlargement(factor)
-
-    def __rotate_object(self, object: Obj2D.Objeto2D, angle: float=0.1, center: tuple[float]=(0.0, 0.0)):
-        object.rotation(angle, center)
