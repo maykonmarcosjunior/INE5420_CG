@@ -112,8 +112,6 @@ class RotateToplevel(TransformationToplevel):
     def __init__(self, master=None, title="Rotation Options", width=300, height=300):
         super().__init__(master, title, width, height)
 
-        self.__rotation_type = tk.StringVar()
-        self.__rotation_type.set(RotationType.object_center)
 
         self.__choosed_rotation_type = None
         self.__angle = None
@@ -125,6 +123,8 @@ class RotateToplevel(TransformationToplevel):
         self.__y_entry = tk.Entry(self)
 
     def _place_labels_and_entries(self) -> None:
+        self.__rotation_type = tk.StringVar()
+        self.__rotation_type.set(RotationType.object_center)
         tk.Radiobutton(
             self,
             text="Rotation around the center of the world",
