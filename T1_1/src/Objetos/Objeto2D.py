@@ -66,15 +66,18 @@ class Objeto2D(ABC):
             ]
         )
 
-    def rotation(self, rotation_type: str, angle: float, x: float, y: float) -> None:
+    def rotation(self, rotation_type: str="RotationType.any_point", angle: float=90, x: float=0, y: float=0) -> None:
         matrix = []
 
         if rotation_type == str(RotationType.any_point):
             matrix = self.__aux_rotation((x, y), angle)
         elif rotation_type == str(RotationType.world_center):
             matrix = self.__get_rotation_matrix(angle)
-        else:
+        elif rotation_type == str(RotationType.object_center):
             matrix = self.__aux_rotation(self.geometric_center(), angle)
+        else:
+            print("Invalid rotation type")
+            return
 
         self.__coords = np.array(
             [
@@ -82,7 +85,6 @@ class Objeto2D(ABC):
                 for coord in self.__coords
             ]
         )
-
     def __aux_rotation(self, center: tuple[float, float], angle: float) -> np.array:
         dx, dy = center
         temp_matrix = np.matmul(
@@ -107,7 +109,7 @@ class Objeto2D(ABC):
         return self.__color
 
     def __str__(self):
-        coords = [tuple(round(i, 2) for i in j) for j in self.__coords]
+        coords = [tuple(round(i, 2) for i in j) for j in self.coordinates]
         return f"{self.obj_type}: - {self.__name} - {coords}"
     
     def certify_format(self, name:str, coords:list[tuple[float]], obj_type:str):
@@ -153,7 +155,9 @@ class Objeto2D(ABC):
             print("extra values will be removed")
             coords = [(j[i] for i in range(2)) for j in coords]
         if not all(isinstance(i, (float, float)) for i in coords):
-            print("Invalid format for coordinates, the tuples should be made of floats")
-            coords = [tuple(float(i) for i in j) for j in coords]
+            try:
+                coords = [tuple(float(i) for i in j) for j in coords]
+            except:
+                print("Invalid format for coordinates, the tuples should be made of floats")
         output_coords = np.array(coords)
         return name, output_coords, obj_type
