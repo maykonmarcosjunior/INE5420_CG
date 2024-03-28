@@ -30,12 +30,11 @@ class Objeto2D(ABC):
         return np.array([[sx, 0, 0], [0, sy, 0], [0, 0, 1]])
 
     def __get_rotation_matrix(self, angle: float) -> np.array:
-        # The -1 is applied to get the angle in the counterclockwise direction.
-        theta = np.radians(-1 * angle)
+        theta = np.radians(angle)
         return np.array(
             [
-                [np.cos(theta), -np.sin(theta), 0],
-                [np.sin(theta), np.cos(theta), 0],
+                [np.cos(theta), np.sin(theta), 0],
+                [-np.sin(theta), np.cos(theta), 0],
                 [0, 0, 1],
             ]
         )
