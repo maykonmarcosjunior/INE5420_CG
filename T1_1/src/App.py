@@ -15,8 +15,7 @@ class App:
         self.__left_frame = tk.Frame(self.__root)
         self.__left_frame.pack(side=tk.LEFT, padx=(80, 0), fill=tk.X)
 
-        self.__display_file = DF.DisplayFile(self.__left_frame)
-        self.__display_file.add_draw_function(self.__draw_all_objects)
+        self.__display_file = DF.DisplayFile(self.__left_frame, self.__apply_transformations)
         self.__root.title(title)
         self.__root.geometry(f"{width}x{height}")
         self.__root.resizable(False, False)
@@ -94,6 +93,11 @@ class App:
         self.__window.delete("all")
         for obj in self.__display_file.objects:
             self.__window.draw_object(obj)
+            
+    def __apply_transformations(self, object_index: int, transformations: list):
+        obj = self.__display_file.objects[object_index]
+        obj.apply_transformations(transformations=transformations)
+        self.__draw_all_objects()
 
     def __update_display_file(self, new_object: Obj2D.Objeto2D):
         self.__display_file.add_object(new_object)

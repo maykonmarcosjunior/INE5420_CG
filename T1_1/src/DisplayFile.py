@@ -4,10 +4,9 @@ from src.TransformationUtils import TransformationsMenu
 
 
 class DisplayFile:
-    def __init__(self, root):
+    def __init__(self, root, transformations_function: callable):
         self.__objects = []
-        self.__frame = DisplayFileFrame(root)
-        self.__frame.add_func_return_transformations_df(self.__update_transformations)
+        self.__frame = DisplayFileFrame(root, transformations_function)
         self.__frame.pack(side=tk.TOP)
 
     def add_object(self, new_object: Obj2D.Objeto2D) -> None:
@@ -19,22 +18,15 @@ class DisplayFile:
         if obj in self.__objects:
             self.__objects.remove(obj)
 
-    def add_draw_function(self, func: callable) -> None:
-        self.__draw_function = func
-
     @property
     def objects(self) -> list[Obj2D.Objeto2D]:
         return self.__objects
 
-    def __update_transformations(self, obj_index: int, transformations: list):
-        current_object = self.__objects[obj_index]
-        current_object.apply_transformations(transformations)
-        self.__draw_function()
-
-
 class DisplayFileFrame(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, transformations_function: callable=None):
         super().__init__(master)
+
+        self.__transformations_function = transformations_function
 
         self.__current_index = -1
         var = tk.Variable(value=[])
@@ -94,7 +86,4 @@ class DisplayFileFrame(tk.Frame):
     def __show_transf_menu(self) -> None:
         transf_menu = TransformationsMenu(self.__selected_item_name, master=self)
         transforms = transf_menu.show_window()
-        self.__return_transf_display_frame(self.__selected_item_index, transforms)
-
-    def add_func_return_transformations_df(self, func: callable) -> None:
-        self.__return_transf_display_frame = func
+        self.__transformations_function(self.__selected_item_index, transforms)
