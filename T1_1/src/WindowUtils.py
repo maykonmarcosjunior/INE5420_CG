@@ -31,11 +31,11 @@ class DrawWindow(tk.Toplevel):
 
         tk.Button(self, text="Submit", command=self.__submit_option).pack(pady=(20, 0))
 
-    def show_window(self):
+    def show_window(self) -> tuple[str, str, str]:
         self.wait_window()
         return self.get_informations()
 
-    def __submit_option(self):
+    def __submit_option(self) -> None:
         self.__coordinates_str = self.__coord_entry.get()
         self.__name_str = self.__object_name.get()
         self.destroy()
@@ -43,7 +43,7 @@ class DrawWindow(tk.Toplevel):
     def get_informations(self) -> tuple[str, str, str]:
         return self.__name_str, self.__coordinates_str, self.__color
 
-    def __choose_color(self):
+    def __choose_color(self) -> None:
         color = colorchooser.askcolor("#000000", title="Choose color")[1]
         if color:
             self.__selected_color_label.config(bg=color)
@@ -67,13 +67,29 @@ class OptionsFrame(tk.Frame):
         self.__nav_frame = tk.Frame(self)
         self.__nav_frame.pack(pady=10)
 
-    def add_button(self, button_text: str, function: Callable, parent="", side=tk.TOP, padx=0, pady=0):
+        self.__rotation_frame = tk.Frame(self)
+        self.__rotation_frame.pack(pady=10)
+
+    def add_button(self, button_text: str, function: Callable, parent="object", side=tk.TOP, padx=0, pady=0) -> None:
         tk.Button(self.__define_master(parent), text=button_text, command=function).pack(pady=pady, padx=padx, side=side)
 
-    def add_label(self, label_text: str, parent="", side=tk.TOP, padx=0, pady=0):
+    def add_label(self, label_text: str, parent="object", side=tk.TOP, padx=0, pady=0) -> None:
         tk.Label(self.__define_master(parent), text=label_text).pack(side=side, padx=padx, pady=pady)
 
-    def __define_master(self, parent: str):
+    def add_entry(self, parent="object", side=tk.TOP, padx=0, pady=0, var_name="Variable") -> None:
+        master = self.__define_master(parent)
+        var = tk.StringVar(master=master, name=var_name)
+        tk.Entry(master=master, textvariable=var).pack(side=side, padx=padx, pady=pady)
+
+    def get_var_value(self, parent="object", var_name="Variable", var_type: callable=None):
+        str_value = self.__define_master(parent).getvar(var_name)
+        try:
+            value = var_type(str_value)
+            return value
+        except ValueError:
+            return None
+
+    def __define_master(self, parent: str) -> tk.Frame:
         match parent:
             case "object":
                 return self.__object_frame
@@ -81,4 +97,6 @@ class OptionsFrame(tk.Frame):
                 return self.__zoom_frame
             case "nav":
                 return self.__nav_frame
+            case "rotation":
+                return self.__rotation_frame
         return self

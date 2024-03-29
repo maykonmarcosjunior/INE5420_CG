@@ -54,6 +54,12 @@ class App:
         self.__options_frame.add_button(button_text="Right", function=lambda: self.__pan_window("x", 10), parent="nav", side=tk.LEFT)
         self.__options_frame.add_button(button_text="Left", function=lambda: self.__pan_window("x", -10), parent="nav",side=tk.LEFT)
 
+        # Window Rotation
+        self.__options_frame.add_label(label_text="Rotate Window", parent="rotation", pady=10)
+        self.__options_frame.add_label(label_text="Angle (in degrees):", parent="rotation")
+        self.__options_frame.add_entry(parent="rotation", var_name="angle")
+        self.__options_frame.add_button(button_text="Rotate", function=self.__rotate_window, parent="rotation", pady=5)
+
     def __get_object(self) -> list[tuple[float]]:
         try:
             name, coords, color = self.__open_draw_window()
@@ -111,15 +117,16 @@ class App:
         self.__draw_all_objects()
 
     def __zoom_window(self, zoom_type: str):
-        '''
         if zoom_type == 'in':
             self.__window.zoom_in()
         elif zoom_type == 'out':
             self.__window.zoom_out()
         self.__draw_all_objects()
-        '''
-        self.__rotate_window(90 if zoom_type == 'in' else -90)
 
-    def __rotate_window(self, angle: float=90):
+    def __rotate_window(self, var_parent="rotation", var_name="angle"):
+        angle = self.__options_frame.get_var_value(parent=var_parent, var_name=var_name, var_type=float)
+        if angle is None:
+            messagebox.showinfo("Information", "The angle value is not of expected type (float).")
+            return
         self.__window.set_normalization_matrix(angle)
         self.__draw_all_objects()
