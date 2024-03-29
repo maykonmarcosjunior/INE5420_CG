@@ -1,5 +1,10 @@
 from src.Objetos.Objeto2D import Objeto2D
 
+'''
+obj1
+(100, 100),(500, 100),(500, 500)
+'''
+
 obj1 = Objeto2D('obj1', [(0, 1), (1, 2), (2, 3)], 'Wireframe')
 
 print('original:', obj1)

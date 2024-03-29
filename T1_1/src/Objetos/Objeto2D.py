@@ -8,6 +8,16 @@ class Objeto2D(ABC):
         self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
         self.__color = color
 
+    def calculate_coords(self, matrix: np.ndarray) -> list[tuple[float]]:
+        R = np.array(
+            [
+                np.dot(np.array([coord[0], coord[1], 1]), matrix)[:-1]
+                for coord in self.__coords
+            ]
+        )
+        return self.__convert_to_tuples_list(R)
+        
+    
     def apply_transformations(self, transformations: list[Transformation]) -> None:
         for transform in transformations:
             match transform.__class__.__name__:
@@ -97,7 +107,8 @@ class Objeto2D(ABC):
     
     @property
     def coordinates(self) -> list[tuple[float]]:
-        return [tuple(i) for i in self.__coords.tolist()]
+        coords = self.__convert_to_tuples_list(self.__coords)
+        return coords
     
     @property
     def obj_type(self) -> str:
@@ -111,6 +122,9 @@ class Objeto2D(ABC):
         coords = [tuple(round(i, 2) for i in j) for j in self.coordinates]
         return f"{self.obj_type}: - {self.__name} - {coords}"
     
+    def __convert_to_tuples_list(self, coords: np.ndarray) -> list[tuple[float]]:
+        return [tuple(float(j) for j in i) for i in coords.tolist()]
+
     def certify_format(self, name:str, coords:list[tuple[float]], obj_type:str):
         if not isinstance(name, str):
             print("Invalid name for", self, ", renamed to 'obj'")

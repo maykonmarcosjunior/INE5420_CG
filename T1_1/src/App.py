@@ -26,6 +26,9 @@ class App:
 
         self.__create_options_frame()
 
+        self.__world_width = 1000
+        self.__world_height = 1000
+
         # Frame separator
         tk.Frame(self.__root, relief="sunken", width=4, bd=10).pack(
             fill=tk.Y, expand=True
@@ -60,13 +63,10 @@ class App:
             f_coords = self.__string_to_float_tuple_list(coords)
             if len(f_coords) == 1:
                 output = P2D.Ponto2D(name, f_coords, color=color)
-                self.__window.draw_point(output.coordinates[0], color)
             elif len(f_coords) == 2:
                 output = L2D.Linha2D(name, f_coords, color=color)
-                self.__window.draw_line(output.coordinates, color)
             else:
                 output = WF.WireFrame(name, f_coords, color=color)
-                self.__window.draw_wireframe(output.coordinates, color)
 
             self.__update_display_file(output)
             return output
@@ -111,8 +111,15 @@ class App:
         self.__draw_all_objects()
 
     def __zoom_window(self, zoom_type: str):
+        '''
         if zoom_type == 'in':
             self.__window.zoom_in()
         elif zoom_type == 'out':
             self.__window.zoom_out()
+        self.__draw_all_objects()
+        '''
+        self.__rotate_window(90 if zoom_type == 'in' else -90)
+
+    def __rotate_window(self, angle: float=90):
+        self.__window.set_normalization_matrix(angle)
         self.__draw_all_objects()

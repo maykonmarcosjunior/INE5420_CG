@@ -1,11 +1,12 @@
 import tkinter as tk
+import numpy as np
 
 import src.ViewPort as VP
 from src.Objetos import Objeto2D as Obj2D
 
 
 class Window:
-    def __init__(self, master=None, width_=600, height_=400):
+    def __init__(self, master=None, width_=600, height_=400, max_width=1000, max_height=1000):
         self.__viewport_frame = tk.Frame(master)
         self.__viewport_frame.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(0, 80))
 
@@ -17,23 +18,46 @@ class Window:
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
         self.__viewport.pack()
 
+        self.__SCN_limits = [(-1, -1), (1, 1)]
+        self.__center = (width_ / 2, height_ / 2)
+        self.__viewup = np.transpose(np.array([0, 1, 1]))
+
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
         self.__ywmax = height_
 
         self.__min_width = 20
         self.__min_height = 20
+        self.__max_width = max_width
+        self.__max_height = max_height
 
         self.__zoom_step = 10
         self.__width_drawings = 2
 
+        self.__SCN_matrix = None
+        self.set_normalization_matrix(0)
+
+    def set_normalization_matrix(self, angle: float=0):
+        theta = np.radians(angle)
+        print("theta:", theta, "rad of:", angle, "degrees")
+        T = np.array([[1, 0, -self.__center[0]], [0, 1, -self.__center[1]], [0, 0, 1]])
+        R = np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+        self.__viewup = np.dot(self.__viewup, R)
+        print("\nviewup:", self.__viewup)
+        S = np.array([[1 / (self.__xwmax - self.__xwmin), 0, 0], [0, 1 / (self.__ywmax - self.__ywmin), 0], [0, 0, 1]])
+        # self.__SCN_matrix = T @ R @ S
+        self.__SCN_matrix = np.matmul(np.matmul(T, R), S)
+
+        
     def draw_object(self, object: Obj2D.Objeto2D):
+        obj_scn_coords = object.calculate_coords(self.__SCN_matrix)
+        print("objeto coords, ", obj_scn_coords)
         if object.obj_type == "Point":
-            self.draw_point(object.coordinates[0], object.color)
+            self.draw_point(obj_scn_coords[0], object.color)
         elif object.obj_type == "Line":
-            self.draw_line(object.coordinates, object.color)
+            self.draw_line(obj_scn_coords, object.color)
         elif object.obj_type == "Wireframe":
-            self.draw_wireframe(object.coordinates, object.color)
+            self.draw_wireframe(obj_scn_coords, object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
@@ -61,6 +85,8 @@ class Window:
     def __zoom(self, c_xwmin: int, c_xwmax: int, c_ywmin: int, c_ywmax: int) -> None:
         if self.__is_min_size() and c_xwmin > 0:
             return
+        if self.__is_max_size() and c_xwmin < 0:
+            return
 
         self.__xwmin += c_xwmin
         self.__xwmax += c_xwmax
@@ -86,6 +112,12 @@ class Window:
 
     def __is_min_size(self) -> bool:
         if (self.__xwmax - self.__xwmin == self.__min_width) or (self.__ywmax - self.__ywmin == self.__min_height):
+            print("Maximum zoom reached!")
+            return True
+        return False
+
+    def __is_max_size(self) -> bool:
+        if (self.__xwmax - self.__xwmin == self.__max_width) or (self.__ywmax - self.__ywmin == self.__max_height):
             print("Maximum zoom reached!")
             return True
         return False
