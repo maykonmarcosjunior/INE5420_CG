@@ -20,7 +20,7 @@ class Window:
 
         self.__SCN_limits = [(-1, -1), (1, 1)]
         self.__center = (width_ / 2, height_ / 2)
-        self.__viewup = np.transpose(np.array([0, 1, 1]))
+        self.__viewup = np.array([0, 1, 1])
 
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
@@ -37,18 +37,41 @@ class Window:
         self.__SCN_matrix = None
         self.set_normalization_matrix(0)
 
-    def set_normalization_matrix(self, angle: float=0):
-        theta = np.radians(angle)
+    def set_normalization_matrix(self, angle: float = 0):
+        self.__update_view_up_vector(np.radians(angle))
+        theta = self.__get_view_up_angle()
+
         print("theta:", theta, "rad of:", angle, "degrees")
         T = np.array([[1, 0, -self.__center[0]], [0, 1, -self.__center[1]], [0, 0, 1]])
         R = np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
-        self.__viewup = np.dot(self.__viewup, R)
         print("\nviewup:", self.__viewup)
-        S = np.array([[1 / (self.__xwmax - self.__xwmin), 0, 0], [0, 1 / (self.__ywmax - self.__ywmin), 0], [0, 0, 1]])
+        S = np.array(
+            [
+                [1 / (self.__xwmax - self.__xwmin), 0, 0],
+                [0, 1 / (self.__ywmax - self.__ywmin), 0],
+                [0, 0, 1],
+            ]
+        )
         # self.__SCN_matrix = T @ R @ S
         self.__SCN_matrix = np.matmul(np.matmul(T, R), S)
 
-        
+    def __update_view_up_vector(self, theta: np.ndarray):
+        rotate_matrix = np.array(
+            [
+                [np.cos(theta), np.sin(theta), 0],
+                [-np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ]
+        )
+        self.__viewup = np.matmul(self.__viewup, rotate_matrix)
+
+    # Calculates the angle that the view up vector makes with the positive y axis
+    def __get_view_up_angle(self) -> float:
+        # The arctan2 function gives the angle that the vector makes with the positive x-axis.
+        # To get the angle made with the positive y-axis, we subtract the result from pi/2.
+        # The multiplication by -1 is needed to make the rotation counter-clockwise.
+        return -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
+
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_scn_coords = object.calculate_coords(self.__SCN_matrix)
         print("objeto coords, ", obj_scn_coords)
