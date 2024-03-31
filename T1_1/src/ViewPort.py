@@ -29,6 +29,6 @@ class ViewPort(tk.Canvas):
         # vx = (x + 1) / (2) * self.__width + 10
         # vy = (1 - (y + 1) / (2)) * self.__height + 10
 
-        print("\nvx:", vx, "vy:", vy, "\n")
+        # print("\nvx:", vx, "vy:", vy, "\n")
 
         return [vx, vy]

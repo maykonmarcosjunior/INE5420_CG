@@ -2,6 +2,7 @@ import src.DisplayFile as DF
 import src.WindowUtils as W_U
 import src.Window as WW
 from src.Objetos import Objeto2D as Obj2D, Ponto2D as P2D, Linha2D as L2D, WireFrame as WF
+from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 
 import tkinter as tk
 from tkinter import messagebox
@@ -40,6 +41,9 @@ class App:
         self.__options_frame.pack(fill=tk.BOTH)
 
         self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object", pady=20)
+        self.__options_frame.add_label(label_text="Import/export .obj files", parent="object")
+        self.__options_frame.add_button(button_text="Import .obj file", parent="object", function=self.__parse_obj)
+        self.__options_frame.add_button(button_text="Export .obj file", parent="object", function=self.__generate_obj)
 
         # Window Zoom
         self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT, pady=10)
@@ -67,18 +71,23 @@ class App:
                 messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
-            if len(f_coords) == 1:
-                output = P2D.Ponto2D(name, f_coords, color=color)
-            elif len(f_coords) == 2:
-                output = L2D.Linha2D(name, f_coords, color=color)
-            else:
-                output = WF.WireFrame(name, f_coords, color=color)
-
+            output = self.__create_object(name, f_coords, color)
             self.__update_display_file(output)
             return output
+
         except Exception as e:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
             print("Error in get_object: ", e)
+
+    def __create_object(self, name, coords, color) -> Obj2D:
+        if len(coords) == 1:
+            output = P2D.Ponto2D(name, coords, color=color)
+        elif len(coords) == 2:
+            output = L2D.Linha2D(name, coords, color=color)
+        else:
+            output = WF.WireFrame(name, coords, color=color)
+
+        return output
 
     def __string_to_float_tuple_list(self, string):
         # Remover parênteses externos e dividir a string em substrings de tuplas
@@ -130,3 +139,20 @@ class App:
             return
         self.__window.set_normalization_matrix(angle)
         self.__draw_all_objects()
+
+    def __parse_obj(self) -> None:
+        parser = OBJP()
+        objects = parser.objects
+
+        # Convert the list of lists of 3D coordinates in a list of tuples of 2D coordinates
+        for value in objects.values():
+            value["coordinates"] = [(coord[0], coord[1]) for coord in value["coordinates"]]
+
+        for name, value in objects.items():
+            self.__display_file.add_object(self.__create_object(name, value["coordinates"], value["color"]))
+
+        self.__draw_all_objects()
+
+
+    def __generate_obj(self) -> None:
+        OBJG(self.__display_file.objects)

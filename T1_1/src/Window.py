@@ -41,10 +41,10 @@ class Window:
         self.__update_view_up_vector(np.radians(angle))
         theta = self.__get_view_up_angle()
 
-        print("theta:", theta, "rad of:", angle, "degrees")
+        #print("theta:", theta, "rad of:", angle, "degrees")
         T = np.array([[1, 0, -self.__center[0]], [0, 1, -self.__center[1]], [0, 0, 1]])
         R = np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
-        print("\nviewup:", self.__viewup)
+        #print("\nviewup:", self.__viewup)
         S = np.array(
             [
                 [1 / (self.__xwmax - self.__xwmin), 0, 0],
@@ -74,7 +74,7 @@ class Window:
 
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_scn_coords = object.calculate_coords(self.__SCN_matrix)
-        print("objeto coords, ", obj_scn_coords)
+        #print("objeto coords, ", obj_scn_coords)
         if object.obj_type == "Point":
             self.draw_point(obj_scn_coords[0], object.color)
         elif object.obj_type == "Line":
