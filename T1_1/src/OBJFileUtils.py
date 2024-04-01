@@ -46,7 +46,8 @@ class OBJParser:
             elif elements[0] == "o":  # Definição de um objeto
                 current_object_name = elements[1]
             elif elements[0] == "g":  # Definição de um grupo
-                current_group_name = elements[1]
+                if len(elements) > 1:
+                    current_group_name = elements[1]
             elif elements[0] == "p":  # Definição de um ponto com base em um vertice
                 obj_name, n_elements_in_group = self.__get_object_name(
                     current_group_name, n_elements_in_group, current_object_name
@@ -156,7 +157,10 @@ class OBJParser:
             lines = f.readlines()
 
         for line in lines:
-            elements = line.strip().split()
+            if not line.strip():  # line is empty
+                continue
+
+            elements = line.split()
             if elements[0] == "newmtl":
                 current_element = elements[1]
             elif elements[0] == "Kd":
