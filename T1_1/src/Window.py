@@ -19,7 +19,7 @@ class Window:
         self.__viewport.pack()
 
         self.__SCN_limits = [(-1, -1), (1, 1)]
-        self.__center = (width_ / 2, height_ / 2)
+        self.__center = [width_ / 2, height_ / 2]
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
 
@@ -68,8 +68,6 @@ class Window:
         )
         self.__viewup = np.matmul(self.__viewup, rotate_matrix)
 
-    # Calculates the angle that the view up vector makes with the positive y axis
-    def __get_view_up_angle(self) -> float:
         # The arctan2 function gives the angle that the vector makes with the positive x-axis.
         # To get the angle made with the positive y-axis, we subtract the result from pi/2.
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
@@ -106,17 +104,6 @@ class Window:
         if object_name == "all":
             self.__viewport.delete("all")
 
-    def __zoom(self, c_xwmin: int, c_xwmax: int, c_ywmin: int, c_ywmax: int) -> None:
-        if self.__is_min_size() and c_xwmin > 0:
-            return
-        if self.__is_max_size() and c_xwmin < 0:
-            return
-
-        self.__xwmin += c_xwmin
-        self.__xwmax += c_xwmax
-        self.__ywmin += c_ywmin
-        self.__ywmax += c_ywmax
-
     def __zoom(self, zoom_step: float) -> None:
         self.__scaling_factor *= 1 + zoom_step
         self.__update_width_drawings()
@@ -134,15 +121,3 @@ class Window:
     def pan_y(self, change: int) -> None:
         self.__center[0] += change * np.sin(self.__viewup_angle)
         self.__center[1] += change * np.cos(self.__viewup_angle)
-
-    def __is_min_size(self) -> bool:
-        if (self.__xwmax - self.__xwmin == self.__min_width) or (self.__ywmax - self.__ywmin == self.__min_height):
-            print("Maximum zoom reached!")
-            return True
-        return False
-
-    def __is_max_size(self) -> bool:
-        if (self.__xwmax - self.__xwmin == self.__max_width) or (self.__ywmax - self.__ywmin == self.__max_height):
-            print("Maximum zoom reached!")
-            return True
-        return False
