@@ -123,6 +123,7 @@ class App:
             self.__window.pan_x(amount)
         elif axis == 'y':
             self.__window.pan_y(amount)
+        self.__window.set_normalization_matrix()
         self.__draw_all_objects()
 
     def __zoom_window(self, zoom_type: str):
@@ -130,6 +131,7 @@ class App:
             self.__window.zoom_in()
         elif zoom_type == 'out':
             self.__window.zoom_out()
+        self.__window.set_normalization_matrix()
         self.__draw_all_objects()
 
     def __rotate_window(self, var_parent="rotation", var_name="angle"):

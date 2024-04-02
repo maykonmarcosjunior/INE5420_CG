@@ -21,6 +21,7 @@ class Window:
         self.__SCN_limits = [(-1, -1), (1, 1)]
         self.__center = (width_ / 2, height_ / 2)
         self.__viewup = np.array([0, 1, 1])
+        self.__viewup_angle = 0
 
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
@@ -31,7 +32,8 @@ class Window:
         self.__max_width = max_width
         self.__max_height = max_height
 
-        self.__zoom_step = 10
+        self.__zoom_step = 0.1
+        self.__scaling_factor = 1
         self.__width_drawings = 2
 
         self.__SCN_matrix = None
@@ -39,16 +41,17 @@ class Window:
 
     def set_normalization_matrix(self, angle: float = 0):
         self.__update_view_up_vector(np.radians(angle))
-        theta = self.__get_view_up_angle()
+
+        theta = self.__viewup_angle
 
         #print("theta:", theta, "rad of:", angle, "degrees")
-        T = np.array([[1, 0, -self.__center[0]], [0, 1, -self.__center[1]], [0, 0, 1]])
+        T = np.array([[1, 0, 0], [0, 1, 0], [-self.__center[0], -self.__center[1], 1]])
         R = np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
         #print("\nviewup:", self.__viewup)
         S = np.array(
             [
-                [1 / (self.__xwmax - self.__xwmin), 0, 0],
-                [0, 1 / (self.__ywmax - self.__ywmin), 0],
+                [2 * self.__scaling_factor / (self.__xwmax - self.__xwmin), 0, 0],
+                [0, 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin), 0],
                 [0, 0, 1],
             ]
         )
@@ -70,7 +73,7 @@ class Window:
         # The arctan2 function gives the angle that the vector makes with the positive x-axis.
         # To get the angle made with the positive y-axis, we subtract the result from pi/2.
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
-        return -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
+        self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
 
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_scn_coords = object.calculate_coords(self.__SCN_matrix)
@@ -83,12 +86,12 @@ class Window:
             self.draw_wireframe(obj_scn_coords, object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
-        vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
+        vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1])
         self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill=color, outline=color)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
-        vp_x_min, vp_y_min = self.__viewport.viewport_transform(coords[0][0], coords[0][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
-        vp_x_max, vp_y_max = self.__viewport.viewport_transform(coords[1][0], coords[1][1], self.__xwmin, self.__xwmax, self.__ywmin, self.__ywmax)
+        vp_x_min, vp_y_min = self.__viewport.viewport_transform(coords[0][0], coords[0][1])
+        vp_x_max, vp_y_max = self.__viewport.viewport_transform(coords[1][0], coords[1][1])
         self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, fill=color, width=self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]], color: str) -> None:
@@ -96,10 +99,8 @@ class Window:
             self.draw_line([coords[i], coords[i + 1]], color)
         self.draw_line([coords[-1], coords[0]], color)
 
-    def __update_width_drawings(self, zoom_type: str):
-        current_window_size = self.__xwmax - self.__xwmin
-        last_size = current_window_size - (2 * self.__zoom_step) if zoom_type == "out" else current_window_size + (2 * self.__zoom_step)
-        self.__width_drawings *= last_size / current_window_size
+    def __update_width_drawings(self):
+        self.__width_drawings = 2 * self.__scaling_factor
 
     def delete(self, object_name="all"):
         if object_name == "all":
@@ -116,22 +117,23 @@ class Window:
         self.__ywmin += c_ywmin
         self.__ywmax += c_ywmax
 
-        zoom_type = "in" if c_xwmin > 0 else "out"
-        self.__update_width_drawings(zoom_type)
+    def __zoom(self, zoom_step: float) -> None:
+        self.__scaling_factor *= 1 + zoom_step
+        self.__update_width_drawings()
 
     def zoom_in(self) -> None:
-        self.__zoom(self.__zoom_step, -self.__zoom_step, self.__zoom_step, -self.__zoom_step)
+        self.__zoom(self.__zoom_step)
 
     def zoom_out(self) -> None:
-        self.__zoom(-self.__zoom_step, self.__zoom_step, -self.__zoom_step, self.__zoom_step)
+        self.__zoom(-self.__zoom_step)
 
     def pan_x(self, change: int) -> None:
-        self.__xwmin += change
-        self.__xwmax += change
+        self.__center[0] += change * np.cos(-self.__viewup_angle)
+        self.__center[1] += change * np.sin(-self.__viewup_angle)
 
     def pan_y(self, change: int) -> None:
-        self.__ywmin += change
-        self.__ywmax += change
+        self.__center[0] += change * np.sin(self.__viewup_angle)
+        self.__center[1] += change * np.cos(self.__viewup_angle)
 
     def __is_min_size(self) -> bool:
         if (self.__xwmax - self.__xwmin == self.__min_width) or (self.__ywmax - self.__ywmin == self.__min_height):
