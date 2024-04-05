@@ -19,7 +19,7 @@ class Window:
         self.__viewport.pack()
 
         self.__SCN_limits = [-1, -1, 1, 1]
-        self.__center = (width_ / 2, height_ / 2)
+        self.__center = [width_ / 2, height_ / 2]
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
 
@@ -184,28 +184,16 @@ class Window:
             clipped_coords = [(p1[0] + u1 * dx, p1[1] + u1 * dy), (p1[0] + u2 * dx, p1[1] + u2 * dy)]
         return clipped_coords
     
-    def __update_width_drawings(self, zoom_type: str):
-        current_window_size = self.__xwmax - self.__xwmin
-        last_size = current_window_size - (2 * self.__zoom_step) if zoom_type == "out" else current_window_size + (2 * self.__zoom_step)
-        self.__width_drawings *= last_size / current_window_size
+    def __update_width_drawings(self):
+        self.__width_drawings = 2 * self.__scaling_factor
 
     def delete(self, object_name="all"):
         if object_name == "all":
             self.__viewport.delete("all")
 
-    def __zoom(self, c_xwmin: int, c_xwmax: int, c_ywmin: int, c_ywmax: int) -> None:
-        if self.__is_min_size() and c_xwmin > 0:
-            return
-        if self.__is_max_size() and c_xwmin < 0:
-            return
-
-        self.__xwmin += c_xwmin
-        self.__xwmax += c_xwmax
-        self.__ywmin += c_ywmin
-        self.__ywmax += c_ywmax
-
-        zoom_type = "in" if c_xwmin > 0 else "out"
-        self.__update_width_drawings(zoom_type)
+    def __zoom(self, zoom_step: float) -> None:
+        self.__scaling_factor *= 1 + zoom_step
+        self.__update_width_drawings()
 
     def zoom_in(self) -> None:
         self.__zoom(self.__zoom_step)
@@ -220,15 +208,3 @@ class Window:
     def pan_y(self, change: int) -> None:
         self.__center[0] += change * np.sin(self.__viewup_angle)
         self.__center[1] += change * np.cos(self.__viewup_angle)
-
-    def __is_min_size(self) -> bool:
-        if (self.__xwmax - self.__xwmin == self.__min_width) or (self.__ywmax - self.__ywmin == self.__min_height):
-            print("Maximum zoom reached!")
-            return True
-        return False
-
-    def __is_max_size(self) -> bool:
-        if (self.__xwmax - self.__xwmin == self.__max_width) or (self.__ywmax - self.__ywmin == self.__max_height):
-            print("Maximum zoom reached!")
-            return True
-        return False
