@@ -172,5 +172,7 @@ class Objeto2D(ABC):
                 coords = [tuple(float(i) for i in j) for j in coords]
             except:
                 print("Invalid format for coordinates, the tuples should be made of floats")
+                print("coordinates will be remanaged to (i, i)")
+                coords = [(i, i) for i in range(len(coords))]
         output_coords = np.array(coords)
         return name, output_coords, obj_type
