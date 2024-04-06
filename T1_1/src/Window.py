@@ -205,57 +205,6 @@ class Window:
             clipped_polygon = new_polygon
         return clipped_polygon
 
-    def __cohen_sutherland(self, coords: list[tuple[float]]) -> list[tuple[float]]:
-        p1, p2 = coords
-        Xw_min, Yw_min, Xw_max, Yw_max = self.__SCN_limits
-        if p1[0] > p2[0]:
-            p1, p2 = p2, p1
-        RC1 = [
-                (p1[1] > Yw_max), (p1[1] < Yw_min),
-                (p1[0] > Xw_max), (p1[0] < Xw_min)
-            ]
-        RC2 = [
-                (p2[1] > Yw_max), (p2[1] < Yw_min),
-                (p2[0] > Xw_max), (p2[0] < Xw_min)
-            ]
-        RC = [i and j for i, j in zip(RC1, RC2)]
-        
-        if RC != [False, False, False, False]:
-            print("Line outside window")
-            return []
-        if RC1 == RC2:
-            return coords
-        
-
-        clipped_coords = [p1, p2]
-        m = (p2[1] - p1[1]) / (p2[0] - p1[0])
-        yE = m * (Xw_min - p1[0]) + p1[1]
-        yD = m * (Xw_max - p1[0]) + p1[1]
-        xT = (Yw_max - p1[1]) / m + p1[0]
-        xF = (Yw_min - p1[1]) / m + p1[0]
-        pX_min = pX_max = pY_min = pY_max = None
-        if (RC1[3] or RC2[3]) and (Yw_min <= yE <= Yw_max):
-            pX_min = (Xw_min, yE)
-            clipped_coords[0] = pX_min
-        if (RC1[2] or RC2[2]) and (Yw_min <= yD <= Yw_max):
-            pX_max = (Xw_max, yD)
-            clipped_coords[1] = pX_max
-        if (RC1[0] or RC2[0]) and (Xw_min <= xT <= Xw_max):
-            pY_max = (xT, Yw_max)
-            if xT > xF:
-                clipped_coords[1] = pY_max
-            else:
-                clipped_coords[0] = pY_max
-        if (RC1[1] or RC2[1]) and (Xw_min <= xF <= Xw_max):
-            pY_min = (xF, Yw_min)
-            if xT > xF:
-                clipped_coords[0] = pY_min
-            else:
-                clipped_coords[1] = pY_min
-        if clipped_coords == [p1, p2]:
-            clipped_coords = []
-        return clipped_coords
-
     def __liang_barsky(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         clipped_coords = []
         p1, p2 = coords
@@ -280,24 +229,91 @@ class Window:
             clipped_coords = [(p1[0] + u1 * dx, p1[1] + u1 * dy), (p1[0] + u2 * dx, p1[1] + u2 * dy)]
         return clipped_coords
     
-    def __nicholl_lee_nicholl(self, line):
-        def compute_outcode(x, y):
-            xmin, ymin, xmax, ymax = self.__SCN_limits
-            code = 0
-            if x < xmin:
-                code |= 1
-            elif x > xmax:
-                code |= 2
-            if y < ymin:
-                code |= 4
-            elif y > ymax:
-                code |= 8
-            return code
+    def __compute_outcode(self, x, y):
+        xmin, ymin, xmax, ymax = self.__SCN_limits
+        code = 0
+        if x < xmin:
+            code |= 1
+        elif x > xmax:
+            code |= 2
+        if y < ymin:
+            code |= 4
+        elif y > ymax:
+            code |= 8
+        return code
+    
+    def __cohen_sutherland(self, coords: list[tuple[float]]) -> list[tuple[float]]:
+        p1, p2 = coords
+        Xw_min, Yw_min, Xw_max, Yw_max = self.__SCN_limits
 
+        if p1[0] > p2[0]:
+            p1, p2 = p2, p1
+
+        RC1 = self.__compute_outcode(*p1)
+        RC2 = self.__compute_outcode(*p2)
+
+        RC0 = RC1 | RC2
+        if RC0 == 0:
+            return coords
+
+        RC = RC1 & RC2
+        if RC != 0:
+            print("Line outside window")
+            return []
+
+        clipped_coords = [p1, p2]
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        if dx == dy == 0:
+            x, y = p1
+            if Xw_min <= x <= Xw_max and Yw_min <= y <= Yw_max:
+                return [(x, y)]
+            else:
+                return []
+        elif dx == 0:
+            x = p1[0]
+            y1 = max((min(p1[1], Yw_max)), Yw_min)
+            y2 = max((min(p2[1], Yw_max)), Yw_min)
+            return [(x, y1), (x, y2)]
+        elif dy == 0:
+            y = p1[1]
+            x1 = max((min(p1[0], Xw_max)), Xw_min)
+            x2 = max((min(p2[0], Xw_max)), Xw_min)
+            return [(x1, y), (x2, y)]
+        m = dy / dx
+        yE = m * (Xw_min - p1[0]) + p1[1]
+        yD = m * (Xw_max - p1[0]) + p1[1]
+        xT = (Yw_max - p1[1]) / m + p1[0]
+        xF = (Yw_min - p1[1]) / m + p1[0]
+        pX_min = pX_max = pY_min = pY_max = None
+        if (RC0 & 1) and (Yw_min <= yE <= Yw_max):
+            pX_min = (Xw_min, yE)
+            clipped_coords[0] = pX_min
+        elif (RC0 & 2) and (Yw_min <= yD <= Yw_max):
+            pX_max = (Xw_max, yD)
+            clipped_coords[1] = pX_max
+        if (RC0 & 4) and (Xw_min <= xF <= Xw_max):
+            pY_min = (xF, Yw_min)
+            if xT > xF:
+                clipped_coords[0] = pY_min
+            else:
+                clipped_coords[1] = pY_min
+        elif (RC0 & 8) and (Xw_min <= xT <= Xw_max):
+            pY_max = (xT, Yw_max)
+            if xT > xF:
+                clipped_coords[1] = pY_max
+            else:
+                clipped_coords[0] = pY_max
+        if clipped_coords == [p1, p2]:
+            clipped_coords = []
+        clipped_coords = [tuple(float(i) for i in j) for j in clipped_coords]
+        return clipped_coords
+
+    def __nicholl_lee_nicholl(self, line):
         p1, p2 = line
         xmin, ymin, xmax, ymax = self.__SCN_limits
-        outcode1 = compute_outcode(*p1)
-        outcode2 = compute_outcode(*p2)
+        outcode1 = self.__compute_outcode(*p1)
+        outcode2 = self.__compute_outcode(*p2)
         accept = False
 
         while True:
@@ -326,13 +342,13 @@ class Window:
 
                 if outcode_out == outcode1:
                     p1 = (x, y)
-                    outcode1 = compute_outcode(x, y)
+                    outcode1 = self.__compute_outcode(x, y)
                 else:
                     p2 = (x, y)
-                    outcode2 = compute_outcode(x, y)
+                    outcode2 = self.__compute_outcode(x, y)
 
         if accept:
-            return [p1, p2]
+            return [tuple(float(i) for i in j) for j in [p1, p2]]
         else:
             return []
     
@@ -363,4 +379,8 @@ class Window:
 
     def set_clipping_algorithm(self, algorithm: str) -> None:
         if algorithm in ["C-S", "L-B"]:
+            print("Clipping Algorithm Changed:", algorithm)
             self.__clipping_algorithm = algorithm
+
+    def draw_viewport_outer_frame(self) -> None:
+        self.__viewport.draw_outer_frame()
