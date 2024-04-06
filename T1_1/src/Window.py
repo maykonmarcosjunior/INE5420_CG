@@ -86,8 +86,7 @@ class Window:
         x_min, y_min, x_max, y_max = self.__world_limits
         if not (x_min <= coords[0] <= x_max and y_min <= coords[1] <= y_max):
             return
-        vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1])
-        self.__viewport.draw_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, color)
+        self.__viewport.draw_oval(*coords, color, self.__width_drawings)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
         clipped_coords = self.__clip_line(coords)

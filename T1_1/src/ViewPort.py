@@ -21,7 +21,10 @@ class ViewPort:
     def draw_outer_frame(self) -> None:
         self.__canvas.create_rectangle(10, 10, self.__width, self.__height, outline="red")
 
-    def draw_oval(self, x0: float, y0: float, x1: float, y1: float, color: str) -> None:
+    def draw_oval(self, x: float, y: float, color: str, width) -> None:
+        xc, yc = self.viewport_transform(x, y)
+        x0, y0 = xc - width, yc - width
+        x1, y1 = xc + width, yc + width
         self.__canvas.create_oval(x0, y0, x1, y1, fill=color, outline=color)
 
     def draw_line(self, p0:(float), p1:(float), color: str, width: float) -> None:
