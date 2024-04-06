@@ -18,10 +18,14 @@ class Window:
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
         self.__viewport.pack()
 
+        # x_min, y_min, x_max, y_max
         self.__SCN_limits = [-1, -1, 1, 1]
+        # middle point of the window
         self.__center = [width_ / 2, height_ / 2]
+        # view up vector
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
+        self.__clipping_algorithm = "C-S"
 
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
@@ -91,28 +95,117 @@ class Window:
         self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill=color, outline=color)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
-        clipped_coords = self.__cohen_sutherland(coords)
-        # clipped_coords = self.__liang_barsky(coords)
+        clipped_coords = self.__clip_line(coords)
         if clipped_coords == []:
             return
+        p1 = clipped_coords[0]
+        p2 = clipped_coords[1]
         vp_x_min, vp_y_min = self.__viewport.viewport_transform(
-            clipped_coords[0][0], clipped_coords[0][1], self.__xwmin,
+            p1[0], p1[1], self.__xwmin,
              self.__xwmax, self.__ywmin, self.__ywmax
              )
         vp_x_max, vp_y_max = self.__viewport.viewport_transform(
-            clipped_coords[1][0], clipped_coords[1][1], self.__xwmin,
+            p2[0], p2[1], self.__xwmin,
              self.__xwmax, self.__ywmin, self.__ywmax
              )
         self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max,
                                      fill=color, width=self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]], color: str) -> None:
-        for i in range(len(coords) - 1):
-            self.draw_line([coords[i], coords[i + 1]], color)
-        self.draw_line([coords[-1], coords[0]], color)
+        clipped_coords = self.__sutherland_hodgman(coords)
+        for i in range(len(clipped_coords) - 1):
+            self.draw_line([clipped_coords[i], clipped_coords[i + 1]], color)
+        self.draw_line([clipped_coords[-1], clipped_coords[0]], color)
+
+    def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
+        if self.__clipping_algorithm == "L-B":
+            return self.__liang_barsky(coords)
+        else:
+            return self.__cohen_sutherland(coords)
+
+    def __sutherland_hodgman(self, polygon):
+        def inside(p, edge):
+            # Função para verificar se um ponto 'p' está dentro de uma aresta 'edge'
+            # Usa o produto vetorial para determinar se o ponto está à esquerda da
+            # aresta quando esta é percorrida no sentido anti-horário.
+            edge_0, edge_1 = edge
+            x0, y0 = edge_0
+            x1, y1 = edge_1
+            x, y = p
+            '''
+            O produto vetorial entre dois vetores 2D (a, b) e (c, d)
+            - é dado pela fórmula: a * d - b * c.
+            Se o resultado do produto vetorial for positivo,
+            - significa que o vetor (c, d) está à esquerda do vetor (a, b).
+            Se o resultado for negativo,
+            - significa que o vetor (c, d) está à direita do vetor (a, b).
+            Se o resultado for zero,
+            - significa que os vetores são colineares.
+            '''
+            return (x1 - x0) * (y - y0) > (y1 - y0) * (x - x0)
+
+        def compute_intersection(p1, p2, edge):
+            # Função para calcular a interseção de uma aresta 'edge' com a linha formada por 'p1' e 'p2'
+            # Usando o método de determinantes para encontrar o ponto de interseção
+            x1, y1 = p1
+            x2, y2 = p2
+            x3, y3 = edge[0]
+            x4, y4 = edge[1]
+
+            """
+            Determinante:
+                O determinante de uma matriz 2x2 [a, b; c, d] é dado pela fórmula: a * d - b * c.
+                O determinante é usado para verificar se duas linhas são paralelas.
+                Se o determinante for zero, significa que as linhas são paralelas ou coincidentes.
+            Fórmula da Interseção:
+                Se as linhas não forem paralelas, é possível calcular o ponto de interseção.
+                A fórmula para calcular o ponto de interseção é derivada de um sistema de equações lineares.
+                O ponto de interseção é calculado usando a fórmula:
+                    (x1 + t * (x2 - x1), y1 + t * (y2 - y1)),
+                onde 't' é um parâmetro que determina a posição
+                do ponto de interseção ao longo da linha formada por 'p1' e 'p2'.
+            """
+
+            den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            if den == 0:
+                return None  # As linhas são paralelas ou coincidentes
+            t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
+            x = x1 + t * (x2 - x1)
+            y = y1 + t * (y2 - y1)
+            return x, y
+
+        clipped_polygon = polygon[:]  # Cria uma cópia do polígono original para modificar
+        
+        # window = [((0, 0), (1, 0)), ((1, 0), (1, 1)), ((1, 1), (0, 1)), ((0, 1), (0, 0))]
+        window_points = [
+                    (self.__SCN_limits[0], self.__SCN_limits[1]),
+                    (self.__SCN_limits[2], self.__SCN_limits[1]),
+                    (self.__SCN_limits[2], self.__SCN_limits[3]),
+                    (self.__SCN_limits[0], self.__SCN_limits[3])
+                  ]
+        window = [(window_points[i], window_points[(i + 1) % 4]) for i in range(4)]
+
+        for edge in window:
+            new_polygon = []
+            prev_point = clipped_polygon[-1]
+
+            for point in clipped_polygon:
+                if inside(point, edge):
+                    if not inside(prev_point, edge):
+                        intersection = compute_intersection(prev_point, point, edge)
+                        if intersection:
+                            new_polygon.append(intersection)
+                    new_polygon.append(point)
+                elif inside(prev_point, edge):
+                    intersection = compute_intersection(prev_point, point, edge)
+                    if intersection:
+                        new_polygon.append(intersection)
+                prev_point = point
+
+            clipped_polygon = new_polygon
+        return clipped_polygon
 
     def __cohen_sutherland(self, coords: list[tuple[float]]) -> list[tuple[float]]:
-        clipped_coords = []
         p1, p2 = coords
         Xw_min, Yw_min, Xw_max, Yw_max = self.__SCN_limits
         if p1[0] > p2[0]:
@@ -126,40 +219,43 @@ class Window:
                 (p2[0] > Xw_max), (p2[0] < Xw_min)
             ]
         RC = [i and j for i, j in zip(RC1, RC2)]
-        if RC == [False, False, False, False]:
-            clipped_coords = [p1, p2]
-            if RC1 != RC2:
-                m = (p2[1] - p1[1]) / (p2[0] - p1[0])
-                yE = m * (Xw_min - p1[0]) + p1[1]
-                yD = m * (Xw_max - p1[0]) + p1[1]
-                xT = (Yw_max - p1[1]) / m + p1[0]
-                xF = (Yw_min - p1[1]) / m + p1[0]
-                pX_min = pX_max = pY_min = pY_max = None
-                if (RC1[3] or RC2[3]) and (Yw_min <= yE <= Yw_max):
-                    pX_min = (Xw_min, yE)
-                    clipped_coords[0] = pX_min
-                if (RC1[2] or RC2[2]) and (Yw_min <= yD <= Yw_max):
-                    pX_max = (Xw_max, yD)
-                    clipped_coords[1] = pX_max
-                if (RC1[0] or RC2[0]) and (Xw_min <= xT <= Xw_max):
-                    pY_max = (xT, Yw_max)
-                    if xT > xF:
-                        clipped_coords[1] = pY_max
-                    else:
-                        clipped_coords[0] = pY_max
-                if (RC1[1] or RC2[1]) and (Xw_min <= xF <= Xw_max):
-                    pY_min = (xF, Yw_min)
-                    if xT > xF:
-                        clipped_coords[0] = pY_min
-                    else:
-                        clipped_coords[1] = pY_min
-                if clipped_coords == [p1, p2]:
-                    clipped_coords = []
-                
-        else:
+        
+        if RC != [False, False, False, False]:
             print("Line outside window")
+            return []
+        if RC1 == RC2:
+            return coords
+        
+
+        clipped_coords = [p1, p2]
+        m = (p2[1] - p1[1]) / (p2[0] - p1[0])
+        yE = m * (Xw_min - p1[0]) + p1[1]
+        yD = m * (Xw_max - p1[0]) + p1[1]
+        xT = (Yw_max - p1[1]) / m + p1[0]
+        xF = (Yw_min - p1[1]) / m + p1[0]
+        pX_min = pX_max = pY_min = pY_max = None
+        if (RC1[3] or RC2[3]) and (Yw_min <= yE <= Yw_max):
+            pX_min = (Xw_min, yE)
+            clipped_coords[0] = pX_min
+        if (RC1[2] or RC2[2]) and (Yw_min <= yD <= Yw_max):
+            pX_max = (Xw_max, yD)
+            clipped_coords[1] = pX_max
+        if (RC1[0] or RC2[0]) and (Xw_min <= xT <= Xw_max):
+            pY_max = (xT, Yw_max)
+            if xT > xF:
+                clipped_coords[1] = pY_max
+            else:
+                clipped_coords[0] = pY_max
+        if (RC1[1] or RC2[1]) and (Xw_min <= xF <= Xw_max):
+            pY_min = (xF, Yw_min)
+            if xT > xF:
+                clipped_coords[0] = pY_min
+            else:
+                clipped_coords[1] = pY_min
+        if clipped_coords == [p1, p2]:
+            clipped_coords = []
         return clipped_coords
-    
+
     def __liang_barsky(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         clipped_coords = []
         p1, p2 = coords
@@ -183,6 +279,62 @@ class Window:
         if u1 < u2:
             clipped_coords = [(p1[0] + u1 * dx, p1[1] + u1 * dy), (p1[0] + u2 * dx, p1[1] + u2 * dy)]
         return clipped_coords
+    
+    def __nicholl_lee_nicholl(self, line):
+        def compute_outcode(x, y):
+            xmin, ymin, xmax, ymax = self.__SCN_limits
+            code = 0
+            if x < xmin:
+                code |= 1
+            elif x > xmax:
+                code |= 2
+            if y < ymin:
+                code |= 4
+            elif y > ymax:
+                code |= 8
+            return code
+
+        p1, p2 = line
+        xmin, ymin, xmax, ymax = self.__SCN_limits
+        outcode1 = compute_outcode(*p1)
+        outcode2 = compute_outcode(*p2)
+        accept = False
+
+        while True:
+            if not (outcode1 | outcode2):
+                accept = True
+                break
+            elif outcode1 & outcode2:
+                break
+            else:
+                x = None
+                y = None
+                outcode_out = outcode1 if outcode1 else outcode2
+
+                if outcode_out & 1:
+                    x = xmin
+                    y = p1[1] + (p2[1] - p1[1]) * (xmin - p1[0]) / (p2[0] - p1[0])
+                elif outcode_out & 2:
+                    x = xmax
+                    y = p1[1] + (p2[1] - p1[1]) * (xmax - p1[0]) / (p2[0] - p1[0])
+                elif outcode_out & 4:
+                    y = ymin
+                    x = p1[0] + (p2[0] - p1[0]) * (ymin - p1[1]) / (p2[1] - p1[1])
+                elif outcode_out & 8:
+                    y = ymax
+                    x = p1[0] + (p2[0] - p1[0]) * (ymax - p1[1]) / (p2[1] - p1[1])
+
+                if outcode_out == outcode1:
+                    p1 = (x, y)
+                    outcode1 = compute_outcode(x, y)
+                else:
+                    p2 = (x, y)
+                    outcode2 = compute_outcode(x, y)
+
+        if accept:
+            return [p1, p2]
+        else:
+            return []
     
     def __update_width_drawings(self):
         self.__width_drawings = 2 * self.__scaling_factor
@@ -208,3 +360,7 @@ class Window:
     def pan_y(self, change: int) -> None:
         self.__center[0] += change * np.sin(self.__viewup_angle)
         self.__center[1] += change * np.cos(self.__viewup_angle)
+
+    def set_clipping_algorithm(self, algorithm: str) -> None:
+        if algorithm in ["C-S", "L-B"]:
+            self.__clipping_algorithm = algorithm
