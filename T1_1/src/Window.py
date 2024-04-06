@@ -17,7 +17,8 @@ class Window:
 
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
         # x_min, y_min, x_max, y_max
-        self.__SCN_limits = [-1, -1, 1, 1]
+        # using the normalized device coordinates
+        self.__world_limits = [-1, -1, 1, 1]
         # middle point of the window
         self.__center = [width_ / 2, height_ / 2]
         # view up vector
@@ -71,18 +72,19 @@ class Window:
         self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
 
     def draw_object(self, object: Obj2D.Objeto2D):
-        obj_scn_coords = object.calculate_coords(self.__SCN_matrix)
-        #print("objeto coords, ", obj_scn_coords)
+        obj_coords = object.calculate_coords(self.__SCN_matrix)
+        #print("objeto coords, ", obj_coords)
         if object.obj_type == "Point":
-            self.draw_point(obj_scn_coords[0], object.color)
+            self.draw_point(obj_coords[0], object.color)
         elif object.obj_type == "Line":
-            self.draw_line(obj_scn_coords, object.color)
+            self.draw_line(obj_coords, object.color)
         elif object.obj_type == "Wireframe":
-            self.draw_wireframe(obj_scn_coords, object.color)
+            self.draw_wireframe(obj_coords, object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # clipping
-        if not (-1 <= coords[0] <= 1 and -1 <= coords[1] <= 1):
+        x_min, y_min, x_max, y_max = self.__world_limits
+        if not (x_min <= coords[0] <= x_max and y_min <= coords[1] <= y_max):
             return
         vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1])
         self.__viewport.draw_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, color)
@@ -91,23 +93,24 @@ class Window:
         clipped_coords = self.__clip_line(coords)
         if clipped_coords == []:
             return
-        p1 = clipped_coords[0]
-        p2 = clipped_coords[1]
-        vp_x_min, vp_y_min = self.__viewport.viewport_transform(p1[0], p1[1])
-        vp_x_max, vp_y_max = self.__viewport.viewport_transform(p2[0], p2[1])
-        self.__viewport.draw_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, color, self.__width_drawings)
-
-    def draw_wireframe(self, coords: list[tuple[float]], color: str) -> None:
+        self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
+    
+    def draw_wireframe(self, coords: list[tuple[float]], color: str, fill=False) -> None:
         clipped_coords = self.__sutherland_hodgman(coords)
-        for i in range(len(clipped_coords) - 1):
-            self.draw_line([clipped_coords[i], clipped_coords[i + 1]], color)
-        self.draw_line([clipped_coords[-1], clipped_coords[0]], color)
-
+        # for i in range(len(clipped_coords)):
+        #    self.draw_line([clipped_coords[i - 1], clipped_coords[i]], color)
+        self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
+    
     def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         if self.__clipping_algorithm == "L-B":
             return self.__liang_barsky(coords)
-        else:
+        elif self.__clipping_algorithm == "C-S":
             return self.__cohen_sutherland(coords)
+        elif self.__clipping_algorithm == "N-L-N":
+            return self.__nicholl_lee_nicholl(coords)
+        else:
+            print("Invalid clipping algorithm")
+            return []
 
     def __sutherland_hodgman(self, polygon):
         def inside(p, edge):
@@ -164,10 +167,10 @@ class Window:
         
         # window = [((0, 0), (1, 0)), ((1, 0), (1, 1)), ((1, 1), (0, 1)), ((0, 1), (0, 0))]
         window_points = [
-                    (self.__SCN_limits[0], self.__SCN_limits[1]),
-                    (self.__SCN_limits[2], self.__SCN_limits[1]),
-                    (self.__SCN_limits[2], self.__SCN_limits[3]),
-                    (self.__SCN_limits[0], self.__SCN_limits[3])
+                    (self.__world_limits[0], self.__world_limits[1]),
+                    (self.__world_limits[2], self.__world_limits[1]),
+                    (self.__world_limits[2], self.__world_limits[3]),
+                    (self.__world_limits[0], self.__world_limits[3])
                   ]
         window = [(window_points[i], window_points[(i + 1) % 4]) for i in range(4)]
 
@@ -194,7 +197,7 @@ class Window:
     def __liang_barsky(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         clipped_coords = []
         p1, p2 = coords
-        Xw_min, Yw_min, Xw_max, Yw_max = self.__SCN_limits
+        Xw_min, Yw_min, Xw_max, Yw_max = self.__world_limits
         dx = p2[0] - p1[0]
         dy = p2[1] - p1[1]
         p = [-dx, dx, -dy, dy]
@@ -216,7 +219,7 @@ class Window:
         return clipped_coords
     
     def __compute_outcode(self, x, y):
-        xmin, ymin, xmax, ymax = self.__SCN_limits
+        xmin, ymin, xmax, ymax = self.__world_limits
         code = 0
         if x < xmin:
             code |= 1
@@ -230,7 +233,7 @@ class Window:
     
     def __cohen_sutherland(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         p1, p2 = coords
-        Xw_min, Yw_min, Xw_max, Yw_max = self.__SCN_limits
+        Xw_min, Yw_min, Xw_max, Yw_max = self.__world_limits
 
         if p1[0] > p2[0]:
             p1, p2 = p2, p1
@@ -297,7 +300,7 @@ class Window:
 
     def __nicholl_lee_nicholl(self, line):
         p1, p2 = line
-        xmin, ymin, xmax, ymax = self.__SCN_limits
+        xmin, ymin, xmax, ymax = self.__world_limits
         outcode1 = self.__compute_outcode(*p1)
         outcode2 = self.__compute_outcode(*p2)
         accept = False
@@ -364,7 +367,7 @@ class Window:
         self.__center[1] += change * np.cos(self.__viewup_angle)
 
     def set_clipping_algorithm(self, algorithm: str) -> None:
-        if algorithm in ["C-S", "L-B"]:
+        if algorithm in ["C-S", "L-B", "N-L-N"]:
             print("Clipping Algorithm Changed:", algorithm)
             self.__clipping_algorithm = algorithm
 
