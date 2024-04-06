@@ -83,8 +83,6 @@ class OBJParser:
                     current_name=obj_name,
                     is_f=True,
                 )
-            elif elements[0] == "w":  # Define a window TODO
-                pass
 
     @property
     def objects(self) -> dict:

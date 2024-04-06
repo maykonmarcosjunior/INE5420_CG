@@ -57,6 +57,8 @@ class OptionsFrame(tk.Frame):
         tk.Label(self, text="Function Menu", font="System 12 bold").pack(
             fill=tk.X, pady=(20, 0)
         )
+        
+        self.__default_font = "TkDefaultFont 10"
 
         self.__object_frame = tk.Frame(self)
         self.__object_frame.pack(pady=10)
@@ -69,12 +71,16 @@ class OptionsFrame(tk.Frame):
 
         self.__rotation_frame = tk.Frame(self)
         self.__rotation_frame.pack(pady=10)
+        
+        self.__clipping_frame = tk.Frame(self)
+        self.__clipping_frame.pack(pady=10)
 
     def add_button(self, button_text: str, function: Callable, parent="object", side=tk.TOP, padx=0, pady=0) -> None:
         tk.Button(self.__define_master(parent), text=button_text, command=function).pack(pady=pady, padx=padx, side=side)
 
-    def add_label(self, label_text: str, parent="object", side=tk.TOP, padx=0, pady=0) -> None:
-        tk.Label(self.__define_master(parent), text=label_text).pack(side=side, padx=padx, pady=pady)
+    def add_label(self, label_text: str, parent="object", side=tk.TOP, padx=0, pady=0, bold=False) -> None:
+        font = self.__default_font if not bold else "TkDefaultFont 10 bold"
+        tk.Label(self.__define_master(parent), text=label_text, font=font).pack(side=side, padx=padx, pady=pady)
 
     def add_entry(self, parent="object", side=tk.TOP, padx=0, pady=0, var_name="Variable") -> None:
         master = self.__define_master(parent)
@@ -99,4 +105,6 @@ class OptionsFrame(tk.Frame):
                 return self.__nav_frame
             case "rotation":
                 return self.__rotation_frame
+            case "clipping":
+                return self.__clipping_frame
         return self

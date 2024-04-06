@@ -16,8 +16,6 @@ class Window:
         ).pack()
 
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
-        self.__viewport.pack()
-
         # x_min, y_min, x_max, y_max
         self.__SCN_limits = [-1, -1, 1, 1]
         # middle point of the window
@@ -30,11 +28,6 @@ class Window:
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
         self.__ywmax = height_
-
-        self.__min_width = 20
-        self.__min_height = 20
-        self.__max_width = max_width
-        self.__max_height = max_height
 
         self.__zoom_step = 0.1
         self.__scaling_factor = 1
@@ -89,10 +82,10 @@ class Window:
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # clipping
-        if not (self.__xwmin <= coords[0] <= self.__xwmax and self.__ywmin <= coords[1] <= self.__ywmax):
+        if not (-1 <= coords[0] <= 1 and -1 <= coords[1] <= 1):
             return
         vp_x, vp_y = self.__viewport.viewport_transform(coords[0], coords[1])
-        self.__viewport.create_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, fill=color, outline=color)
+        self.__viewport.draw_oval(vp_x - self.__width_drawings, vp_y - self.__width_drawings, vp_x + self.__width_drawings, vp_y + self.__width_drawings, color)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
         clipped_coords = self.__clip_line(coords)
@@ -100,16 +93,9 @@ class Window:
             return
         p1 = clipped_coords[0]
         p2 = clipped_coords[1]
-        vp_x_min, vp_y_min = self.__viewport.viewport_transform(
-            p1[0], p1[1], self.__xwmin,
-             self.__xwmax, self.__ywmin, self.__ywmax
-             )
-        vp_x_max, vp_y_max = self.__viewport.viewport_transform(
-            p2[0], p2[1], self.__xwmin,
-             self.__xwmax, self.__ywmin, self.__ywmax
-             )
-        self.__viewport.create_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max,
-                                     fill=color, width=self.__width_drawings)
+        vp_x_min, vp_y_min = self.__viewport.viewport_transform(p1[0], p1[1])
+        vp_x_max, vp_y_max = self.__viewport.viewport_transform(p2[0], p2[1])
+        self.__viewport.draw_line(vp_x_min, vp_y_min, vp_x_max, vp_y_max, color, self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]], color: str) -> None:
         clipped_coords = self.__sutherland_hodgman(coords)
@@ -363,4 +349,8 @@ class Window:
 
     def set_clipping_algorithm(self, algorithm: str) -> None:
         if algorithm in ["C-S", "L-B"]:
+            print("Clipping Algorithm Changed:", algorithm)
             self.__clipping_algorithm = algorithm
+
+    def draw_viewport_outer_frame(self) -> None:
+        self.__viewport.draw_outer_frame()

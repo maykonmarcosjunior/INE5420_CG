@@ -40,18 +40,18 @@ class App:
         self.__options_frame = W_U.OptionsFrame(self.__left_frame)
         self.__options_frame.pack(fill=tk.BOTH)
 
-        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object", pady=20)
-        self.__options_frame.add_label(label_text="Import/export .obj files", parent="object")
+        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object", pady=10)
+        self.__options_frame.add_label(label_text="Import/export .obj files", parent="object", bold=True, pady=(10, 0))
         self.__options_frame.add_button(button_text="Import .obj file", parent="object", function=self.__parse_obj)
         self.__options_frame.add_button(button_text="Export .obj file", parent="object", function=self.__generate_obj)
 
         # Window Zoom
         self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT, pady=10)
-        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, pady=10)
+        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, pady=10, bold=True)
         self.__options_frame.add_button(button_text="+", function=lambda: self.__zoom_window("in"), parent="zoom", side=tk.LEFT, pady=10)
 
         # Window Navigation
-        self.__options_frame.add_label(label_text="Navigation", parent="nav", padx=30)
+        self.__options_frame.add_label(label_text="Navigation", parent="nav", bold=True)
 
         self.__options_frame.add_button(button_text="Up", function=lambda: self.__pan_window("y", 10), parent="nav", side=tk.LEFT)
         self.__options_frame.add_button(button_text="Down", function=lambda: self.__pan_window("y", -10), parent="nav", side=tk.LEFT)
@@ -59,10 +59,16 @@ class App:
         self.__options_frame.add_button(button_text="Left", function=lambda: self.__pan_window("x", -10), parent="nav",side=tk.LEFT)
 
         # Window Rotation
-        self.__options_frame.add_label(label_text="Rotate Window", parent="rotation", pady=10)
+        self.__options_frame.add_label(label_text="Rotate Window", parent="rotation", bold=True)
         self.__options_frame.add_label(label_text="Angle (in degrees):", parent="rotation")
         self.__options_frame.add_entry(parent="rotation", var_name="angle")
-        self.__options_frame.add_button(button_text="Rotate", function=self.__rotate_window, parent="rotation", pady=5)
+        self.__options_frame.add_button(button_text="Rotate", function=self.__rotate_window, parent="rotation")
+        
+        # Clipping
+        self.__options_frame.add_label(label_text="Change Clipping Method", parent="clipping", bold=True)
+        self.__options_frame.add_button(button_text="Cohen Sutherland", function=lambda: self.__set_clipping_algorithm("C-S"), parent="clipping")
+        self.__options_frame.add_button(button_text="Liang Barsky", function=lambda: self.__set_clipping_algorithm("L-B"), parent="clipping")
+        
 
     def __get_object(self) -> list[tuple[float]]:
         try:
@@ -106,6 +112,8 @@ class App:
 
     def __draw_all_objects(self):
         self.__window.delete("all")
+        self.__window.draw_viewport_outer_frame()
+        
         for obj in self.__display_file.objects:
             self.__window.draw_object(obj)
             
@@ -158,3 +166,6 @@ class App:
 
     def __generate_obj(self) -> None:
         OBJG(self.__display_file.objects)
+        
+    def __set_clipping_algorithm(self, algorithm: str="C-S") -> None:
+        self.__window.set_clipping_algorithm(algorithm)
