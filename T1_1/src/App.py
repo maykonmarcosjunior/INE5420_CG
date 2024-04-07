@@ -27,9 +27,6 @@ class App:
 
         self.__create_options_frame()
 
-        self.__world_width = 1000
-        self.__world_height = 1000
-
         # Frame separator
         tk.Frame(self.__root, relief="sunken", width=4, bd=10).pack(
             fill=tk.Y, expand=True
@@ -40,15 +37,15 @@ class App:
         self.__options_frame = W_U.OptionsFrame(self.__left_frame)
         self.__options_frame.pack(fill=tk.BOTH)
 
-        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object", pady=10)
+        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object")
         self.__options_frame.add_label(label_text="Import/export .obj files", parent="object", bold=True, pady=(10, 0))
         self.__options_frame.add_button(button_text="Import .obj file", parent="object", function=self.__parse_obj)
         self.__options_frame.add_button(button_text="Export .obj file", parent="object", function=self.__generate_obj)
 
         # Window Zoom
-        self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT, pady=10)
-        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, pady=10, bold=True)
-        self.__options_frame.add_button(button_text="+", function=lambda: self.__zoom_window("in"), parent="zoom", side=tk.LEFT, pady=10)
+        self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT)
+        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, bold=True)
+        self.__options_frame.add_button(button_text="+", function=lambda: self.__zoom_window("in"), parent="zoom", side=tk.LEFT)
 
         # Window Navigation
         self.__options_frame.add_label(label_text="Navigation", parent="nav", bold=True)
@@ -72,12 +69,12 @@ class App:
 
     def __get_object(self) -> list[tuple[float]]:
         try:
-            name, coords, color = self.__open_draw_window()
+            name, coords, color, fill = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
-            output = self.__create_object(name, f_coords, color)
+            output = self.__create_object(name, f_coords, color, fill)
             self.__update_display_file(output)
             return output
 
@@ -85,13 +82,13 @@ class App:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
             print("Error in get_object: ", e)
 
-    def __create_object(self, name, coords, color) -> Obj2D:
+    def __create_object(self, name, coords, color, fill=False) -> Obj2D:
         if len(coords) == 1:
             output = P2D.Ponto2D(name, coords, color=color)
         elif len(coords) == 2:
             output = L2D.Linha2D(name, coords, color=color)
         else:
-            output = WF.WireFrame(name, coords, color=color)
+            output = WF.WireFrame(name, coords, color=color, fill=fill)
 
         return output
 
@@ -107,8 +104,8 @@ class App:
 
     def __open_draw_window(self):
         self.__draw_window = W_U.DrawWindow(self.__root)
-        name, coords, color = self.__draw_window.show_window()
-        return name, coords, color
+        name, coords, color, fill = self.__draw_window.show_window()
+        return name, coords, color, fill
 
     def __draw_all_objects(self):
         self.__window.delete("all")
@@ -162,7 +159,6 @@ class App:
             self.__display_file.add_object(self.__create_object(name, value["coordinates"], value["color"]))
 
         self.__draw_all_objects()
-
 
     def __generate_obj(self) -> None:
         OBJG(self.__display_file.objects)

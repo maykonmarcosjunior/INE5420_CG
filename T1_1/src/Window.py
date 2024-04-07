@@ -6,7 +6,7 @@ from src.Objetos import Objeto2D as Obj2D
 
 
 class Window:
-    def __init__(self, master=None, width_=600, height_=400, max_width=1000, max_height=1000):
+    def __init__(self, master=None, width_=600, height_=400):
         self.__viewport_frame = tk.Frame(master)
         self.__viewport_frame.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(0, 80))
 
@@ -79,7 +79,7 @@ class Window:
         elif object.obj_type == "Line":
             self.draw_line(obj_coords, object.color)
         elif object.obj_type == "Wireframe":
-            self.draw_wireframe(obj_coords, object.color)
+            self.draw_wireframe(obj_coords, object.color, object.fill)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # clipping
@@ -96,8 +96,9 @@ class Window:
     
     def draw_wireframe(self, coords: list[tuple[float]], color: str, fill=False) -> None:
         clipped_coords = self.__sutherland_hodgman(coords)
-        # for i in range(len(clipped_coords)):
-        #    self.draw_line([clipped_coords[i - 1], clipped_coords[i]], color)
+        if clipped_coords == []:
+            return
+
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
     
     def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:

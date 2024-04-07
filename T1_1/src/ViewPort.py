@@ -3,8 +3,9 @@ import tkinter as tk
 
 class ViewPort:
     def __init__(self, master=None, width_=600, height_=400, bg_="white"):
+        self.__border_size = 10
 
-        self.__canvas = tk.Canvas(master, width=width_ + 10, height=height_ + 10, bg=bg_)
+        self.__canvas = tk.Canvas(master, width=width_ + 2 * self.__border_size, height=height_ + 2 * self.__border_size, bg=bg_)
 
         self.__canvas.configure(scrollregion=self.__canvas.bbox("all"))
 
@@ -19,7 +20,7 @@ class ViewPort:
         self.__canvas.delete(object_name)
 
     def draw_outer_frame(self) -> None:
-        self.__canvas.create_rectangle(10, 10, self.__width, self.__height, outline="red")
+        self.__canvas.create_rectangle(self.__border_size, self.__border_size, self.__width + self.__border_size, self.__height + self.__border_size, outline="red")
 
     def draw_oval(self, x: float, y: float, color: str, width) -> None:
         xc, yc = self.viewport_transform(x, y)
@@ -38,6 +39,6 @@ class ViewPort:
         self.__canvas.create_polygon(points, fill=bg, outline=color, width=width)
     
     def viewport_transform(self, x: float, y: float) -> list[float]:
-        vx = (x + 1) / (2) * self.__width + 10
-        vy = (1 - (y + 1) / (2)) * self.__height + 10
+        vx = (x + 1) / 2 * self.__width + self.__border_size
+        vy = (1 - (y + 1) / 2) * self.__height + self.__border_size
         return [vx, vy]

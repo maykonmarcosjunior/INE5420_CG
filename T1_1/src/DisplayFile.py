@@ -72,7 +72,7 @@ class DisplayFileFrame(tk.Frame):
             self.__selected_item_index = self.__listbox.curselection()[0]
             self.__selected_item_name = self.__listbox.get(self.__selected_item_index)
 
-            self.__transf_hidden_button.pack(pady=10)
+            self.__transf_hidden_button.pack()
             self.__is_button_hidden = False
 
         elif selection_exists:

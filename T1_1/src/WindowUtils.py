@@ -9,6 +9,7 @@ class DrawWindow(tk.Toplevel):
         self.__coordinates_str = None  # Value to be returned
         self.__name_str = None
         self.__color = "#000000"
+        self.__fill_var_bool = None
 
         self.title("Draw Options")
         self.geometry(f"{width}x{height}")
@@ -29,19 +30,23 @@ class DrawWindow(tk.Toplevel):
         self.__selected_color_label = tk.Label(self, bg=self.__color, width=5, height=1)
         self.__selected_color_label.pack()
 
+        self.__fill_var = tk.IntVar()
+        tk.Checkbutton(self, text="Fill Polygon", variable=self.__fill_var, onvalue=1, offvalue=0).pack(pady=20)
+
         tk.Button(self, text="Submit", command=self.__submit_option).pack(pady=(20, 0))
 
-    def show_window(self) -> tuple[str, str, str]:
+    def show_window(self) -> tuple[str, str, str, bool]:
         self.wait_window()
         return self.get_informations()
 
     def __submit_option(self) -> None:
         self.__coordinates_str = self.__coord_entry.get()
         self.__name_str = self.__object_name.get()
+        self.__fill_var_bool = self.__fill_var.get() == 1
         self.destroy()
 
-    def get_informations(self) -> tuple[str, str, str]:
-        return self.__name_str, self.__coordinates_str, self.__color
+    def get_informations(self) -> tuple[str, str, str, bool]:
+        return self.__name_str, self.__coordinates_str, self.__color, self.__fill_var_bool
 
     def __choose_color(self) -> None:
         color = colorchooser.askcolor("#000000", title="Choose color")[1]
