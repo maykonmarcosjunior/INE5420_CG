@@ -18,11 +18,13 @@ class Objeto2D(ABC):
         return self.__convert_to_tuples_list(R)
         
     
-    def apply_transformations(self, transformations: list[Transformation]) -> None:
+    def apply_transformations(self, transformations: list[Transformation], transform_vector_function: callable) -> None:
         for transform in transformations:
             match transform.__class__.__name__:
                 case "Translation":
-                    self.translation(transform.dx, transform.dy)
+                    #The user-entered coordinates represent the desired translation, but when the window is rotated, 
+                    # the object's coordinates need to be updated differently. This is achieved by using the unrotated vector.
+                    self.translation(*transform_vector_function(transform.dx, transform.dy))
                 case "Rotation":
                     self.rotation(
                         transform.rotation_type,

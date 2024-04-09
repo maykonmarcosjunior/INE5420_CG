@@ -116,7 +116,7 @@ class App:
             
     def __apply_transformations(self, object_index: int, transformations: list):
         obj = self.__display_file.objects[object_index]
-        obj.apply_transformations(transformations=transformations)
+        obj.apply_transformations(transformations=transformations, transform_vector_function=self.__window.unrotate_vector)
         self.__draw_all_objects()
 
     def __update_display_file(self, new_object: Obj2D.Objeto2D):

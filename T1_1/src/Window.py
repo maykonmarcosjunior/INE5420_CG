@@ -20,7 +20,7 @@ class Window:
         # using the normalized device coordinates
         self.__world_limits = [-1, -1, 1, 1]
         # middle point of the window
-        self.__center = [width_ / 2, height_ / 2]
+        self.__center = np.array([width_ / 2, height_ / 2, 1])
         # view up vector
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
@@ -44,7 +44,7 @@ class Window:
 
         #print("theta:", theta, "rad of:", angle, "degrees")
         T = np.array([[1, 0, 0], [0, 1, 0], [-self.__center[0], -self.__center[1], 1]])
-        R = np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+        R = self.__get_rotate_matrix(theta)
         #print("\nviewup:", self.__viewup)
         S = np.array(
             [
@@ -57,13 +57,7 @@ class Window:
         self.__SCN_matrix = np.matmul(np.matmul(T, R), S)
 
     def __update_view_up_vector(self, theta: np.ndarray):
-        rotate_matrix = np.array(
-            [
-                [np.cos(theta), np.sin(theta), 0],
-                [-np.sin(theta), np.cos(theta), 0],
-                [0, 0, 1],
-            ]
-        )
+        rotate_matrix = self.__get_rotate_matrix(theta)
         self.__viewup = np.matmul(self.__viewup, rotate_matrix)
 
         # The arctan2 function gives the angle that the vector makes with the positive x-axis.
@@ -80,6 +74,17 @@ class Window:
             self.draw_line(obj_coords, object.color)
         elif object.obj_type == "Wireframe":
             self.draw_wireframe(obj_coords, object.color, object.fill)
+
+    def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
+        old_vector = np.array([dx, dy, 0])
+        new_vector = np.dot(old_vector, self.__get_rotate_matrix(- self.__viewup_angle))
+        return new_vector[0], new_vector[1]
+
+    def __get_rotate_matrix(self, theta: float) -> np.array:
+        return np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+
+    def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
+        return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # clipping
@@ -359,12 +364,12 @@ class Window:
         self.__zoom(-self.__zoom_step)
 
     def pan_x(self, change: int) -> None:
-        self.__center[0] += change * np.cos(-self.__viewup_angle)
-        self.__center[1] += change * np.sin(-self.__viewup_angle)
+        changed_x, changed_y = self.unrotate_vector(change, 0)
+        self.__center = np.dot(self.__center, self.__get_translate_matrix(changed_x, changed_y))
 
     def pan_y(self, change: int) -> None:
-        self.__center[0] += change * np.sin(self.__viewup_angle)
-        self.__center[1] += change * np.cos(self.__viewup_angle)
+        changed_x, changed_y = self.unrotate_vector(0, change)
+        self.__center = np.dot(self.__center, self.__get_translate_matrix(changed_x, changed_y))
 
     def set_clipping_algorithm(self, algorithm: str) -> None:
         if algorithm in ["C-S", "L-B", "N-L-N"]:
