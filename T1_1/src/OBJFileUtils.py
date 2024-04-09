@@ -176,8 +176,8 @@ class OBJGenerator:
     def __generate_mtl_file(self, elements: dict, file_name: str):
         with open(file_name, "w", encoding="utf-8") as f:
             for key in elements.keys():
-                f.write(f"newmtl {key}\n")
-                f.write(f"Kd {elements[key]}\n")
+                f.write(f"newmtl {elements[key]}\n")
+                f.write(f"Kd {key}\n")
 
     def __choose_file_name(self) -> str:
         return filedialog.asksaveasfilename(
