@@ -16,8 +16,8 @@ class Window:
         ).pack()
 
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
-        # x_min, y_min, x_max, y_max
         # using the normalized device coordinates
+        # x_min, y_min, x_max, y_max
         self.__world_limits = [-1, -1, 1, 1]
         # middle point of the window
         self.__center = np.array([width_ / 2, height_ / 2, 1])
@@ -103,7 +103,6 @@ class Window:
         clipped_coords = self.__sutherland_hodgman(coords)
         if clipped_coords == []:
             return
-
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
     
     def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
@@ -118,17 +117,17 @@ class Window:
             return []
 
     def __sutherland_hodgman(self, polygon):
+        # Função para verificar se um ponto 'p' está dentro de uma aresta 'edge'
         def inside(p, edge):
-            # Função para verificar se um ponto 'p' está dentro de uma aresta 'edge'
-            # Usa o produto vetorial para determinar se o ponto está à esquerda da
-            # aresta quando esta é percorrida no sentido anti-horário.
+            # Usa o produto vetorial para determinar se o ponto está à esquerda
+            # da aresta quando esta é percorrida no sentido anti-horário.
             edge_0, edge_1 = edge
             x0, y0 = edge_0
             x1, y1 = edge_1
             x, y = p
             '''
-            O produto vetorial entre dois vetores 2D (a, b) e (c, d)
-            - é dado pela fórmula: a * d - b * c.
+            O produto vetorial entre dois vetores 2D,
+            (a, b) e (c, d) é dado pela fórmula: a * d - b * c.
             Se o resultado do produto vetorial for positivo,
             - significa que o vetor (c, d) está à esquerda do vetor (a, b).
             Se o resultado for negativo,
@@ -162,15 +161,16 @@ class Window:
 
             den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
             if den == 0:
-                return None  # As linhas são paralelas ou coincidentes
+                # As linhas são paralelas ou coincidentes
+                return None
             t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
             x = x1 + t * (x2 - x1)
             y = y1 + t * (y2 - y1)
             return x, y
 
-        clipped_polygon = polygon[:]  # Cria uma cópia do polígono original para modificar
+        # Cria uma cópia do polígono original para modificar
+        clipped_polygon = polygon[:]
         
-        # window = [((0, 0), (1, 0)), ((1, 0), (1, 1)), ((1, 1), (0, 1)), ((0, 1), (0, 0))]
         window_points = [
                     (self.__world_limits[0], self.__world_limits[1]),
                     (self.__world_limits[2], self.__world_limits[1]),
@@ -181,6 +181,8 @@ class Window:
 
         for edge in window:
             new_polygon = []
+            if not clipped_polygon:
+                break
             prev_point = clipped_polygon[-1]
 
             for point in clipped_polygon:
