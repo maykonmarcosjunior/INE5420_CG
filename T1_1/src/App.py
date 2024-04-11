@@ -109,10 +109,9 @@ class App:
 
     def __draw_all_objects(self):
         self.__window.delete("all")
-        self.__window.draw_viewport_outer_frame()
-        
         for obj in self.__display_file.objects:
             self.__window.draw_object(obj)
+        self.__window.draw_viewport_outer_frame()
             
     def __apply_transformations(self, object_index: int, transformations: list):
         obj = self.__display_file.objects[object_index]
