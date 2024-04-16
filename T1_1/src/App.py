@@ -1,12 +1,17 @@
-import src.DisplayFile as DF
-import src.WindowUtils as W_U
-import src.Window as WW
-from src.Objetos import Objeto2D as Obj2D, Ponto2D as P2D, Linha2D as L2D, WireFrame as WF, CurvaBezier as BC
-from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
-
 import tkinter as tk
 from tkinter import messagebox
 import ast  # Importar o módulo ast para avaliar a string como expressão Python
+
+import src.WindowUtilis.DisplayFile as DF
+import src.WindowUtilis.DrawWindow as DW
+import src.WindowUtilis.OptionsFrame as OF
+import src.Window as WW
+from src.Objetos import Objeto2D as Obj2D
+from src.Objetos import Ponto2D as P2D
+from src.Objetos import Linha2D as L2D
+from src.Objetos import WireFrame as WF
+from src.Objetos import CurvaBezier as BC
+from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 
 
 class App:
@@ -34,7 +39,7 @@ class App:
         self.__root.mainloop()
 
     def __create_options_frame(self):
-        self.__options_frame = W_U.OptionsFrame(self.__left_frame)
+        self.__options_frame = OF.OptionsFrame(self.__left_frame)
         self.__options_frame.pack(fill=tk.BOTH)
 
         self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object")
@@ -105,7 +110,7 @@ class App:
         return tuple_list
 
     def __open_draw_window(self):
-        self.__draw_window = W_U.DrawWindow(self.__root)
+        self.__draw_window = DW.DrawWindow(self.__root)
         name, coords, color, fill, obj_type = self.__draw_window.show_window()
         return name, coords, color, fill, obj_type
 
@@ -163,6 +168,7 @@ class App:
 
     def __generate_obj(self) -> None:
         OBJG(self.__display_file.objects)
-        
+    
+    # works for both the line and polygon algorithm
     def __set_clipping_algorithm(self, algorithm: str="C-S") -> None:
         self.__window.set_clipping_algorithm(algorithm)

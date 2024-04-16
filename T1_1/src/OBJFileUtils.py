@@ -234,7 +234,7 @@ class OBJGenerator:
         normalized_rgb = tuple(f"{component / 255:.6f}" for component in rgb)
         return " ".join(normalized_rgb)
 
-    def __get_current_kd_str_mtl(self, kd: int) -> (str, int):
+    def __get_current_kd_str_mtl(self, kd: int) -> tuple[str, int]:
         return "color" + str(kd), kd + 1
 
     def __add_vertices(self, vertices: list[tuple[float, float]]):

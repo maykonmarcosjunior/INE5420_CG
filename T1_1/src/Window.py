@@ -3,7 +3,7 @@ import numpy as np
 
 import src.ViewPort as VP
 from src.Objetos import Objeto2D as Obj2D
-from src.Clipping import Clipping
+from src.TransformationUtils.Clipper import Clipper
 
 
 class Window:
@@ -17,15 +17,13 @@ class Window:
         ).pack()
 
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
-        # using the normalized device coordinates
-        # x_min, y_min, x_max, y_max
-        self.__world_limits = [-1, -1, 1, 1]
         # middle point of the window
         self.__center = np.array([width_ / 2, height_ / 2, 1])
         # view up vector
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
-        self.__clipping_algorithm = "C-S"
+        # using the normalized device coordinates
+        self.__clipper = Clipper("SCN", "L-B")
 
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width_
@@ -66,6 +64,17 @@ class Window:
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
         self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
 
+    def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
+        old_vector = np.array([dx, dy, 0])
+        new_vector = np.dot(old_vector, self.__get_rotate_matrix(- self.__viewup_angle))
+        return new_vector[0], new_vector[1]
+
+    def __get_rotate_matrix(self, theta: float) -> np.array:
+        return np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+
+    def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
+        return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
+
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_coords = object.calculate_coords(self.__SCN_matrix)
         #print("objeto coords, ", obj_coords)
@@ -79,32 +88,19 @@ class Window:
             case Obj2D.ObjectType.BEZIER_CURVE:
                 self.draw_bezier_curve(object.generate_curve(obj_coords), object.color)
 
-    def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
-        old_vector = np.array([dx, dy, 0])
-        new_vector = np.dot(old_vector, self.__get_rotate_matrix(- self.__viewup_angle))
-        return new_vector[0], new_vector[1]
-
-    def __get_rotate_matrix(self, theta: float) -> np.array:
-        return np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
-
-    def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
-        return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
-
     def draw_point(self, coords: tuple[float], color: str) -> None:
-        # clipping
-        x_min, y_min, x_max, y_max = self.__world_limits
-        if not (x_min <= coords[0] <= x_max and y_min <= coords[1] <= y_max):
-            return
-        self.__viewport.draw_oval(*coords, color, self.__width_drawings)
+        # if the point is outside the window, it is not drawn
+        if self.__clipper.clip_point(coords):
+            self.__viewport.draw_oval(*coords, color, self.__width_drawings)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
-        clipped_coords = self.__clip_line(coords)
+        clipped_coords = self.__clipper.clip_line(coords)
         if clipped_coords == []:
             return
         self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]], color: str, fill=False) -> None:
-        clipped_coords = Clipping.sutherland_hodgman(coords, self.__world_limits)
+        clipped_coords = self.__clipper.clip_polygon(coords)
         if clipped_coords == []:
             return
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
@@ -112,22 +108,11 @@ class Window:
     def draw_bezier_curve(self, coords: list[tuple[float]], color: str) -> None:
         for curve in coords:
             for j in range(len(curve) - 1):
-                clipped_coords = self.__clip_line([curve[j], curve[j + 1]])
+                clipped_coords = self.__clipper.clip_line([curve[j], curve[j + 1]])
                 if clipped_coords == []:
                     continue
 
                 self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
-
-    def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
-        if self.__clipping_algorithm == "L-B":
-            return Clipping.liang_barsky(coords, self.__world_limits)
-        elif self.__clipping_algorithm == "C-S":
-            return Clipping.cohen_sutherland(coords, self.__world_limits)
-        elif self.__clipping_algorithm == "N-L-N":
-            return Clipping.nicholl_lee_nicholl(coords, self.__world_limits)
-        else:
-            print("Invalid clipping algorithm")
-            return []
 
     def __update_width_drawings(self):
         self.__width_drawings = 2 * self.__scaling_factor
@@ -154,10 +139,13 @@ class Window:
         changed_x, changed_y = self.unrotate_vector(0, change)
         self.__center = np.dot(self.__center, self.__get_translate_matrix(changed_x, changed_y))
 
-    def set_clipping_algorithm(self, algorithm: str) -> None:
-        if algorithm in ["C-S", "L-B", "N-L-N"]:
-            print("Clipping Algorithm Changed:", algorithm)
-            self.__clipping_algorithm = algorithm
-
     def draw_viewport_outer_frame(self) -> None:
         self.__viewport.draw_outer_frame()
+
+    # works for both lines and polygons algorithms
+    def set_clipping_algorithm(self, algorithm: str) -> None:
+        self.__clipper.set_clipping_algorithm(algorithm)
+    
+    # define the world limits for clipping
+    def set_clipping_window(self, window: str) -> None:
+        self.__clipper.set_window(window)

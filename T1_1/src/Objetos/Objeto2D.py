@@ -2,7 +2,7 @@ import numpy as np
 from enum import Enum
 from random import randint
 from abc import ABC
-from src.Transformations import RotationType, Transformation
+from src.TransformationUtils.Transformations import RotationType, Transformation
 
 class ObjectType(Enum):
     OBJECT2D = 1

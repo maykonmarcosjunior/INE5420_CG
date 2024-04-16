@@ -1,26 +1,6 @@
 import tkinter as tk
-from src.Objetos import Objeto2D as Obj2D
-from src.TransformationUtils import TransformationsMenu
 
-
-class DisplayFile:
-    def __init__(self, root, transformations_function: callable):
-        self.__objects = []
-        self.__frame = DisplayFileFrame(root, transformations_function)
-        self.__frame.pack(side=tk.TOP)
-
-    def add_object(self, new_object: Obj2D.Objeto2D) -> None:
-        if new_object not in self.__objects and isinstance(new_object, Obj2D.Objeto2D):
-            self.__objects.append(new_object)
-            self.__frame.add_new_object(new_object)
-
-    def remove_object(self, obj: Obj2D.Objeto2D) -> None:
-        if obj in self.__objects:
-            self.__objects.remove(obj)
-
-    @property
-    def objects(self) -> list[Obj2D.Objeto2D]:
-        return self.__objects
+from src.TransformationUtils.TransformationsMenu import TransformationsMenu
 
 class DisplayFileFrame(tk.Frame):
     def __init__(self, master=None, transformations_function: callable=None):
@@ -56,9 +36,9 @@ class DisplayFileFrame(tk.Frame):
         self.__selected_item_name = None
         self.__selected_item_index = None
 
-    def add_new_object(self, new_object: Obj2D.Objeto2D) -> None:
+    def add_new_object(self, name:str, obj_type:str) -> None:
         self.__listbox.insert(
-            self.__get_index(), f"{new_object.name} ({str(new_object.obj_type).split('.')[-1].title()})"
+            self.__get_index(), f"{name} ({str(obj_type).split('.')[-1].title()})"
         )
 
     def __get_index(self) -> int:
