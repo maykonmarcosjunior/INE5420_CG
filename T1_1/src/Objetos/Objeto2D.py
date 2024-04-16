@@ -1,6 +1,15 @@
 import numpy as np
+from enum import Enum
+from random import randint
 from abc import ABC
 from src.Transformations import RotationType, Transformation
+
+class ObjectType(Enum):
+    OBJECT2D = 1
+    POINT = 2
+    LINE = 3
+    WIREFRAME = 4
+    BEZIER_CURVE = 5
 
 
 class Objeto2D(ABC):
@@ -134,26 +143,31 @@ class Objeto2D(ABC):
         if len(coords) == 0:
             print("No coordinates defined for", self, ", defined as (0,0)")
             coords = [(0,0)]
-        if obj_type not in ["Point", "Line", "Wireframe"]:
+        if obj_type not in ObjectType:
             print("Invalid object type")
             obj_type = None
         if obj_type is None:
             print("Object type not defined for", self, ", automatically guessed")
             if len(coords) == 1:
-                obj_type = "Point"
+                obj_type = ObjectType.POINT
             elif len(coords) == 2:
-                obj_type = "Line"
+                obj_type = ObjectType.LINE
             else:
-                obj_type = "Wireframe"
-        if len(coords) == 1 and obj_type != "Point":
+                obj_type = ObjectType.WIREFRAME
+        if len(coords) == 1 and obj_type != ObjectType.POINT:
             print("Wrong object type")
-            obj_type = "Point"
-        if len(coords) == 2 and obj_type != "Line":
+            obj_type = ObjectType.POINT
+        if len(coords) == 2 and obj_type != ObjectType.LINE:
             print("Wrong object type")
-            obj_type = "Line"
-        if len(coords) > 2 and obj_type != "Wireframe":
+            obj_type = ObjectType.LINE
+        if len(coords) > 2 and (obj_type != ObjectType.WIREFRAME and obj_type != ObjectType.BEZIER_CURVE):
             print("Wrong object type")
-            obj_type = "Wireframe"
+            obj_type = ObjectType.WIREFRAME
+        if obj_type == ObjectType.BEZIER_CURVE and len(coords) < 4:
+            added_points = [(randint(-1000, 1000), randint(-1000, 1000)) for _ in range(4 - len(coords))]
+            print("Insufficient Control Points for Bézier Curve")
+            print(f"The following random points will be added to the coordinates: {added_points}")
+            coords.extend(added_points)
         if not all(isinstance(i, tuple) for i in coords):
             print("Invalid format for coordinates, should be a list of tuples")
             coords = [tuple(i) for i in coords]

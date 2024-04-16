@@ -69,12 +69,15 @@ class Window:
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_coords = object.calculate_coords(self.__SCN_matrix)
         #print("objeto coords, ", obj_coords)
-        if object.obj_type == "Point":
-            self.draw_point(obj_coords[0], object.color)
-        elif object.obj_type == "Line":
-            self.draw_line(obj_coords, object.color)
-        elif object.obj_type == "Wireframe":
-            self.draw_wireframe(obj_coords, object.color, object.fill)
+        match object.obj_type:
+            case Obj2D.ObjectType.POINT:
+                self.draw_point(obj_coords[0], object.color)
+            case Obj2D.ObjectType.LINE:
+                 self.draw_line(obj_coords, object.color)
+            case Obj2D.ObjectType.WIREFRAME:
+                self.draw_wireframe(obj_coords, object.color, object.fill)
+            case Obj2D.ObjectType.BEZIER_CURVE:
+                self.draw_bezier_curve(object.generate_curve(obj_coords), object.color)
 
     def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
         old_vector = np.array([dx, dy, 0])
@@ -105,6 +108,15 @@ class Window:
         if clipped_coords == []:
             return
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
+
+    def draw_bezier_curve(self, coords: list[tuple[float]], color: str) -> None:
+        # TODO: Clippar
+        clipped_coords = coords
+        if clipped_coords == []:
+            return
+        for clipped_curve in clipped_coords:
+            for j in range(len(clipped_curve) - 1):
+                self.__viewport.draw_line(clipped_curve[j], clipped_curve[j + 1], color, self.__width_drawings)
 
     def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         if self.__clipping_algorithm == "L-B":

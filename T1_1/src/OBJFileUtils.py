@@ -1,7 +1,7 @@
 from tkinter import filedialog
 from os import path, getcwd
 
-from src.Objetos.Objeto2D import Objeto2D
+from src.Objetos.Objeto2D import Objeto2D, ObjectType
 
 
 class OBJParser:
@@ -210,15 +210,19 @@ class OBJGenerator:
 
             lines.append(f"o {objeto.name}\n")
             lines.append(f"usemtl {color_name}\n")
-            if objeto.obj_type == "Point":
-                lines.append(f"p {self.__vertices[objeto.coordinates[0]]}\n")
-            elif objeto.obj_type == "Line":
-                lines.append(
-                    f"l {self.__vertices[objeto.coordinates[0]]} {self.__vertices[objeto.coordinates[1]]}\n"
-                )
-            elif objeto.obj_type == "Wireframe":
-                indexes = self.__get_vertices_indexes(objeto.coordinates)
-                lines.append(f"l {' '.join(indexes)}\n")
+
+            match objeto.obj_type:
+                case ObjectType.POINT:
+                    lines.append(f"p {self.__vertices[objeto.coordinates[0]]}\n")
+                case ObjectType.LINE:
+                    lines.append(
+                        f"l {self.__vertices[objeto.coordinates[0]]} {self.__vertices[objeto.coordinates[1]]}\n"
+                    )
+                case ObjectType.WIREFRAME:
+                    indexes = self.__get_vertices_indexes(objeto.coordinates)
+                    lines.append(f"l {' '.join(indexes)}\n")
+                case ObjectType.BEZIER_CURVE:
+                    pass # TODO
 
         self.__write_to_files(
             file_name, mtl_file_name, self.__vertices, lines, mtl_elements

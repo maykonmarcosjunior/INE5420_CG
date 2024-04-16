@@ -1,7 +1,7 @@
 import src.DisplayFile as DF
 import src.WindowUtils as W_U
 import src.Window as WW
-from src.Objetos import Objeto2D as Obj2D, Ponto2D as P2D, Linha2D as L2D, WireFrame as WF
+from src.Objetos import Objeto2D as Obj2D, Ponto2D as P2D, Linha2D as L2D, WireFrame as WF, CurvaBezier as BC
 from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 
 import tkinter as tk
@@ -69,12 +69,12 @@ class App:
 
     def __get_object(self) -> list[tuple[float]]:
         try:
-            name, coords, color, fill = self.__open_draw_window()
+            name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
-            output = self.__create_object(name, f_coords, color, fill)
+            output = self.__create_object(name, f_coords, color, fill, obj_type)
             self.__update_display_file(output)
             return output
 
@@ -82,8 +82,10 @@ class App:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
             print("Error in get_object: ", e)
 
-    def __create_object(self, name, coords, color, fill=False) -> Obj2D:
-        if len(coords) == 1:
+    def __create_object(self, name, coords, color, fill=False, obj_type: int=Obj2D.ObjectType.OBJECT2D) -> Obj2D:
+        if obj_type == Obj2D.ObjectType.BEZIER_CURVE.value:
+            output = BC.CurvaBezier(name, coords, color=color)
+        elif len(coords) == 1:
             output = P2D.Ponto2D(name, coords, color=color)
         elif len(coords) == 2:
             output = L2D.Linha2D(name, coords, color=color)
@@ -104,8 +106,8 @@ class App:
 
     def __open_draw_window(self):
         self.__draw_window = W_U.DrawWindow(self.__root)
-        name, coords, color, fill = self.__draw_window.show_window()
-        return name, coords, color, fill
+        name, coords, color, fill, obj_type = self.__draw_window.show_window()
+        return name, coords, color, fill, obj_type
 
     def __draw_all_objects(self):
         self.__window.delete("all")
