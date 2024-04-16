@@ -58,7 +58,7 @@ class DisplayFileFrame(tk.Frame):
 
     def add_new_object(self, new_object: Obj2D.Objeto2D) -> None:
         self.__listbox.insert(
-            self.__get_index(), f"{new_object.name} ({new_object.obj_type})"
+            self.__get_index(), f"{new_object.name} ({str(new_object.obj_type).split('.')[-1].title()})"
         )
 
     def __get_index(self) -> int:

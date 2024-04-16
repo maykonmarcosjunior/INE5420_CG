@@ -141,7 +141,6 @@ class Clipping:
 
         RC = RC1 & RC2
         if RC != 0:
-            print("Line outside window")
             return []
 
         clipped_coords = [p1, p2]

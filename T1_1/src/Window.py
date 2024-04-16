@@ -110,13 +110,13 @@ class Window:
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
 
     def draw_bezier_curve(self, coords: list[tuple[float]], color: str) -> None:
-        # TODO: Clippar
-        clipped_coords = coords
-        if clipped_coords == []:
-            return
-        for clipped_curve in clipped_coords:
-            for j in range(len(clipped_curve) - 1):
-                self.__viewport.draw_line(clipped_curve[j], clipped_curve[j + 1], color, self.__width_drawings)
+        for curve in coords:
+            for j in range(len(curve) - 1):
+                clipped_coords = self.__clip_line([curve[j], curve[j + 1]])
+                if clipped_coords == []:
+                    continue
+
+                self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
 
     def __clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         if self.__clipping_algorithm == "L-B":
