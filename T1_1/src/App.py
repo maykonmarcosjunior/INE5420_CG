@@ -11,6 +11,7 @@ from src.Objetos import Ponto2D as P2D
 from src.Objetos import Linha2D as L2D
 from src.Objetos import WireFrame as WF
 from src.Objetos import CurvaBezier as BC
+from src.Objetos import CurvaBSpline as BSC
 from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 
 
@@ -90,6 +91,8 @@ class App:
     def __create_object(self, name, coords, color, fill=False, obj_type: int=Obj2D.ObjectType.OBJECT2D) -> Obj2D:
         if obj_type == Obj2D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
+        elif obj_type == Obj2D.ObjectType.BSPLINE_CURVE.value:
+            output = BSC.CurvaBSpline(name, coords, color=color)
         elif len(coords) == 1:
             output = P2D.Ponto2D(name, coords, color=color)
         elif len(coords) == 2:

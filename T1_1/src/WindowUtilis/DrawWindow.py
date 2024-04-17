@@ -23,6 +23,7 @@ class DrawWindow(tk.Toplevel):
         tk.Label(frame_obj_type, text="Object Type: ").pack(side=tk.LEFT)
         tk.Radiobutton(frame_obj_type, text="Objeto 2D", variable=self.__object_type_var, value=ObjectType.OBJECT2D.value).pack(side=tk.LEFT)
         tk.Radiobutton(frame_obj_type, text="Curva de Bézier", variable=self.__object_type_var, value=ObjectType.BEZIER_CURVE.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Curva B-Spline", variable=self.__object_type_var, value=ObjectType.BSPLINE_CURVE.value).pack(side=tk.LEFT)
 
         tk.Label(self, text="Name:").pack()
         self.__object_name = tk.Entry(self)

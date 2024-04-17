@@ -77,16 +77,15 @@ class Window:
 
     def draw_object(self, object: Obj2D.Objeto2D):
         obj_coords = object.calculate_coords(self.__SCN_matrix)
-        #print("objeto coords, ", obj_coords)
-        match object.obj_type:
-            case Obj2D.ObjectType.POINT:
-                self.draw_point(obj_coords[0], object.color)
-            case Obj2D.ObjectType.LINE:
-                 self.draw_line(obj_coords, object.color)
-            case Obj2D.ObjectType.WIREFRAME:
-                self.draw_wireframe(obj_coords, object.color, object.fill)
-            case Obj2D.ObjectType.BEZIER_CURVE:
-                self.draw_bezier_curve(object.generate_curve(obj_coords), object.color)
+
+        if object.obj_type == Obj2D.ObjectType.POINT:
+            self.draw_point(obj_coords[0], object.color)
+        elif object.obj_type == Obj2D.ObjectType.LINE:
+            self.draw_line(obj_coords, object.color)
+        elif object.obj_type == Obj2D.ObjectType.WIREFRAME:
+            self.draw_wireframe(obj_coords, object.color, object.fill)
+        elif object.obj_type in [Obj2D.ObjectType.BEZIER_CURVE, Obj2D.ObjectType.BSPLINE_CURVE]:
+            self.draw_curve(object.generate_curve(obj_coords), object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # if the point is outside the window, it is not drawn
@@ -105,14 +104,13 @@ class Window:
             return
         self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
 
-    def draw_bezier_curve(self, coords: list[tuple[float]], color: str) -> None:
-        for curve in coords:
-            for j in range(len(curve) - 1):
-                clipped_coords = self.__clipper.clip_line([curve[j], curve[j + 1]])
-                if clipped_coords == []:
-                    continue
+    def draw_curve(self, coords: list[tuple[float]], color: str) -> None:
+        for j in range(len(coords) - 1):
+            clipped_coords = self.__clipper.clip_line([coords[j], coords[j + 1]])
+            if clipped_coords == []:
+                continue
 
-                self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
+            self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
 
     def __update_width_drawings(self):
         self.__width_drawings = 2 * self.__scaling_factor

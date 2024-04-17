@@ -10,6 +10,7 @@ class ObjectType(Enum):
     LINE = 3
     WIREFRAME = 4
     BEZIER_CURVE = 5
+    BSPLINE_CURVE = 6
 
 
 class Objeto2D(ABC):
@@ -160,12 +161,12 @@ class Objeto2D(ABC):
         if len(coords) == 2 and obj_type != ObjectType.LINE:
             print("Wrong object type")
             obj_type = ObjectType.LINE
-        if len(coords) > 2 and (obj_type != ObjectType.WIREFRAME and obj_type != ObjectType.BEZIER_CURVE):
+        if len(coords) > 2 and obj_type not in [ObjectType.WIREFRAME, ObjectType.BEZIER_CURVE, ObjectType.BSPLINE_CURVE]:
             print("Wrong object type")
             obj_type = ObjectType.WIREFRAME
-        if obj_type == ObjectType.BEZIER_CURVE and len(coords) < 4:
+        if (obj_type == ObjectType.BEZIER_CURVE or obj_type == ObjectType.BSPLINE_CURVE) and len(coords) < 4:
             added_points = [(randint(-1000, 1000), randint(-1000, 1000)) for _ in range(4 - len(coords))]
-            print("Insufficient Control Points for Bézier Curve")
+            print("Insufficient Control Points for Curve")
             print(f"The following random points will be added to the coordinates: {added_points}")
             coords.extend(added_points)
         if not all(isinstance(i, tuple) for i in coords):

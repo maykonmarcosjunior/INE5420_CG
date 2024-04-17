@@ -8,14 +8,15 @@ class CurvaBezier(Objeto2D):
 
         # As coordenadas guardadas são os pontos de controle
 
-        self.__M_b = np.array(
+        self.__MB = np.array(
             [[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]]
         )
 
     def generate_curve(self, control_points_normalized):
         curve_pieces = []
+        # The groups overlap to give the curve continuity
         for i in range(0, len(control_points_normalized) - 2 - (len(control_points_normalized) - 1) % 3, 3):
-            curve_pieces.append(
+            curve_pieces.extend(
                 self.__calculate_curve_piece(np.array(control_points_normalized[i : i + 4]))
             )
 
@@ -27,10 +28,10 @@ class CurvaBezier(Objeto2D):
 
         for t in t_values:
             T = np.array([t**3, t**2, t, 1])
-            TM_b = np.matmul(T, self.__M_b)
+            T_MB = np.matmul(T, self.__MB)
 
-            x = np.matmul(TM_b, control_points[:, 0]) # Multiply the TM_b by the x coordinates in control points
-            y = np.matmul(TM_b, control_points[:, 1]) # Multiply the TM_b by the y coordinates in control points
+            x = np.matmul(T_MB, control_points[:, 0]) # Multiply the TM_b by the x coordinates in control points
+            y = np.matmul(T_MB, control_points[:, 1]) # Multiply the TM_b by the y coordinates in control points
             sub_curve.append([x, y])
 
         return sub_curve
