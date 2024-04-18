@@ -68,16 +68,16 @@ class App:
         self.__options_frame.add_label(label_text="Navigation", parent="nav", bold=True)
 
         self.__options_frame.add_button(button_text="Up",
-                                        function=lambda: self.__pan_window("y", 10),
+                                        function=lambda: self.__pan_window(0, 10),
                                         parent="nav", side=tk.LEFT)
         self.__options_frame.add_button(button_text="Down",
-                                        function=lambda: self.__pan_window("y", -10),
+                                        function=lambda: self.__pan_window(0, -10),
                                         parent="nav", side=tk.LEFT)
         self.__options_frame.add_button(button_text="Right",
-                                        function=lambda: self.__pan_window("x", 10),
+                                        function=lambda: self.__pan_window(10, 0),
                                         parent="nav", side=tk.LEFT)
         self.__options_frame.add_button(button_text="Left",
-                                        function=lambda: self.__pan_window("x", -10),
+                                        function=lambda: self.__pan_window(-10, 0),
                                         parent="nav",side=tk.LEFT)
 
         # Window Rotation
@@ -161,6 +161,11 @@ class App:
         self.__display_file.add_object(new_object)
         self.__draw_all_objects()
 
+    def __pan_window(self, dx: float, dy: int):
+        self.__window.pan(dx, dy)
+        self.__draw_all_objects()
+    
+    '''
     def __pan_window(self, axis: str, amount: int):
         if axis == 'x':
             self.__window.pan_x(amount)
@@ -168,13 +173,13 @@ class App:
             self.__window.pan_y(amount)
         self.__window.set_normalization_matrix()
         self.__draw_all_objects()
+    '''
 
     def __zoom_window(self, zoom_type: str):
         if zoom_type == 'in':
             self.__window.zoom_in()
         elif zoom_type == 'out':
             self.__window.zoom_out()
-        self.__window.set_normalization_matrix()
         self.__draw_all_objects()
 
     def __rotate_window(self, var_parent="rotation", var_name="angle"):

@@ -1,9 +1,10 @@
 import tkinter as tk
-import numpy as np
+# import numpy as np
 
 import src.ViewPort as VP
 from src.Objetos import Objeto2D as Obj2D
 from src.TransformationUtils.Clipper import Clipper
+from src.TransformationUtils.Transformator import Transformator
 
 
 class Window:
@@ -17,71 +18,21 @@ class Window:
         ).pack()
 
         self.__viewport = VP.ViewPort(self.__viewport_frame, width_, height_)
-        # middle point of the window
-        self.__center = np.array([width_ / 2, height_ / 2, 1])
-        # view up vector
-        self.__viewup = np.array([0, 1, 1])
-        self.__viewup_angle = 0
         # using the normalized device coordinates
         self.__clipper = Clipper("SCN", "L-B")
-
-        self.__xwmin = self.__ywmin = 0
-        self.__xwmax = width_
-        self.__ywmax = height_
+        self.__transformator = Transformator("SCN", height_, width_)
 
         self.__zoom_step = 0.1
-        self.__scaling_factor = 1
         self.__width_drawings = 2
 
-        self.__SCN_matrix = None
-        self.set_normalization_matrix(0)
-
-    def set_normalization_matrix(self, angle: float = 0):
-        self.__update_view_up_vector(np.radians(angle))
-
-        theta = self.__viewup_angle
-
-        #print("theta:", theta, "rad of:", angle, "degrees")
-        T = np.array([
-                      [1, 0, 0], [0, 1, 0],
-                      [-self.__center[0], -self.__center[1], 1]
-                     ])
-        R = self.__get_rotate_matrix(theta)
-        #print("\nviewup:", self.__viewup)
-        S = np.array(
-            [
-                [2 * self.__scaling_factor / (self.__xwmax - self.__xwmin), 0, 0],
-                [0, 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin), 0],
-                [0, 0, 1],
-            ]
-        )
-        # self.__SCN_matrix = T @ R @ S
-        self.__SCN_matrix = np.matmul(np.matmul(T, R), S)
-
-    def __update_view_up_vector(self, theta: np.ndarray):
-        rotate_matrix = self.__get_rotate_matrix(theta)
-        self.__viewup = np.matmul(self.__viewup, rotate_matrix)
-
-        # The arctan2 function gives the angle that the vector makes with the positive x-axis.
-        # To get the angle made with the positive y-axis, we subtract the result from pi/2.
-        # The multiplication by -1 is needed to make the rotation counter-clockwise.
-        self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
-
     def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
-        old_vector = np.array([dx, dy, 0])
-        new_vector = np.dot(old_vector, self.__get_rotate_matrix(- self.__viewup_angle))
-        return new_vector[0], new_vector[1]
-
-    def __get_rotate_matrix(self, theta: float) -> np.array:
-        return np.array([[np.cos(theta), np.sin(theta), 0],
-                         [-np.sin(theta), np.cos(theta), 0],
-                         [0, 0, 1]])
-
-    def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
-        return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
-
+        return self.__transformator.unrotate_vector(dx, dy)
+    
+    def set_normalization_matrix(self, angle: float = 0):
+        self.__transformator.set_normalization_matrix(angle)
+    
     def draw_object(self, object: Obj2D.Objeto2D):
-        obj_coords = object.calculate_coords(self.__SCN_matrix)
+        obj_coords = object.calculate_coords(self.__transformator.matrix)
 
         if object.obj_type == Obj2D.ObjectType.POINT:
             self.draw_point(obj_coords[0], object.color)
@@ -110,15 +61,16 @@ class Window:
                                    color, self.__width_drawings)
 
     def __update_width_drawings(self):
-        self.__width_drawings = 2 * self.__scaling_factor
+        self.__width_drawings = 2 * self.__transformator.scaling_factor
 
     def delete(self, object_name="all"):
         if object_name == "all":
             self.__viewport.delete("all")
 
     def __zoom(self, zoom_step: float) -> None:
-        self.__scaling_factor *= 1 + zoom_step
+        self.__transformator.scaling_factor *= 1 + zoom_step
         self.__update_width_drawings()
+        self.set_normalization_matrix()
 
     def zoom_in(self) -> None:
         self.__zoom(self.__zoom_step)
@@ -126,16 +78,18 @@ class Window:
     def zoom_out(self) -> None:
         self.__zoom(-self.__zoom_step)
 
+    def pan(self, dx: float, dy: float) -> None:
+        self.__transformator.update_center(dx, dy)
+        self.set_normalization_matrix()
+ 
+    """
     def pan_x(self, change: int) -> None:
-        changed_x, changed_y = self.unrotate_vector(change, 0)
-        self.__center = np.dot(self.__center,
-                               self.__get_translate_matrix(changed_x, changed_y))
+        self.__transformator.update_center(change, 0)
 
     def pan_y(self, change: int) -> None:
-        changed_x, changed_y = self.unrotate_vector(0, change)
-        self.__center = np.dot(self.__center,
-                               self.__get_translate_matrix(changed_x, changed_y))
-
+        self.__transformator.update_center(0, change)
+    """
+    
     def draw_viewport_outer_frame(self) -> None:
         self.__viewport.draw_outer_frame()
 

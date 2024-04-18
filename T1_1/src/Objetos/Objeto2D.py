@@ -32,8 +32,10 @@ class Objeto2D(ABC):
         for transform in transformations:
             match transform.__class__.__name__:
                 case "Translation":
-                    #The user-entered coordinates represent the desired translation, but when the window is rotated, 
-                    # the object's coordinates need to be updated differently. This is achieved by using the unrotated vector.
+                    # The user-entered coordinates represent the desired translation,
+                    # but when the window is rotated, 
+                    # the object's coordinates need to be updated differently.
+                    # This is achieved by using the unrotated vector.
                     self.translation(*transform_vector_function(transform.dx, transform.dy))
                 case "Rotation":
                     self.rotation(
