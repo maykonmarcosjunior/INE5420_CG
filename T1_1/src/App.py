@@ -1,10 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-import ast  # Importar o módulo ast para avaliar a string como expressão Python
+import ast
 
-import src.WindowUtilis.DisplayFile as DF
-import src.WindowUtilis.DrawWindow as DW
-import src.WindowUtilis.OptionsFrame as OF
 import src.Window as WW
 from src.Objetos import Objeto2D as Obj2D
 from src.Objetos import Ponto2D as P2D
@@ -13,6 +10,9 @@ from src.Objetos import WireFrame as WF
 from src.Objetos import CurvaBezier as BC
 from src.Objetos import CurvaBSpline as BSC
 from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
+import src.WindowUtilis.DisplayFile as DF
+import src.WindowUtilis.DrawWindow as DW
+import src.WindowUtilis.OptionsFrame as OF
 
 
 class App:
@@ -22,7 +22,8 @@ class App:
         self.__left_frame = tk.Frame(self.__root)
         self.__left_frame.pack(side=tk.LEFT, padx=(80, 0), fill=tk.X)
 
-        self.__display_file = DF.DisplayFile(self.__left_frame, self.__apply_transformations)
+        self.__display_file = DF.DisplayFile(self.__left_frame,
+                                             self.__apply_transformations)
         self.__root.title(title)
         self.__root.geometry(f"{width}x{height}")
         self.__root.resizable(False, False)
@@ -43,41 +44,68 @@ class App:
         self.__options_frame = OF.OptionsFrame(self.__left_frame)
         self.__options_frame.pack(fill=tk.BOTH)
 
-        self.__options_frame.add_button(button_text="Draw Object", function=self.__get_object, parent="object")
-        self.__options_frame.add_label(label_text="Import/export .obj files", parent="object", bold=True, pady=(10, 0))
-        self.__options_frame.add_button(button_text="Import .obj file", parent="object", function=self.__parse_obj)
-        self.__options_frame.add_button(button_text="Export .obj file", parent="object", function=self.__generate_obj)
+        self.__options_frame.add_button(button_text="Draw Object",
+                                        function=self.__get_object,
+                                        parent="object")
+        self.__options_frame.add_label(label_text="Import/export .obj files",
+                                       parent="object", bold=True, pady=(10, 0))
+        self.__options_frame.add_button(button_text="Import .obj file",
+                                        parent="object", function=self.__parse_obj)
+        self.__options_frame.add_button(button_text="Export .obj file",
+                                        parent="object",function=self.__generate_obj)
 
         # Window Zoom
-        self.__options_frame.add_button(button_text="-", function=lambda: self.__zoom_window("out"), parent="zoom", side=tk.LEFT)
-        self.__options_frame.add_label(label_text="Zoom", parent="zoom", side=tk.LEFT, padx=30, bold=True)
-        self.__options_frame.add_button(button_text="+", function=lambda: self.__zoom_window("in"), parent="zoom", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="-",
+                                        function=lambda: self.__zoom_window("out"),
+                                        parent="zoom", side=tk.LEFT)
+        self.__options_frame.add_label(label_text="Zoom", parent="zoom",
+                                       side=tk.LEFT, padx=30, bold=True)
+        self.__options_frame.add_button(button_text="+",
+                                        function=lambda: self.__zoom_window("in"),
+                                        parent="zoom", side=tk.LEFT)
 
         # Window Navigation
         self.__options_frame.add_label(label_text="Navigation", parent="nav", bold=True)
 
-        self.__options_frame.add_button(button_text="Up", function=lambda: self.__pan_window("y", 10), parent="nav", side=tk.LEFT)
-        self.__options_frame.add_button(button_text="Down", function=lambda: self.__pan_window("y", -10), parent="nav", side=tk.LEFT)
-        self.__options_frame.add_button(button_text="Right", function=lambda: self.__pan_window("x", 10), parent="nav", side=tk.LEFT)
-        self.__options_frame.add_button(button_text="Left", function=lambda: self.__pan_window("x", -10), parent="nav",side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Up",
+                                        function=lambda: self.__pan_window("y", 10),
+                                        parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Down",
+                                        function=lambda: self.__pan_window("y", -10),
+                                        parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Right",
+                                        function=lambda: self.__pan_window("x", 10),
+                                        parent="nav", side=tk.LEFT)
+        self.__options_frame.add_button(button_text="Left",
+                                        function=lambda: self.__pan_window("x", -10),
+                                        parent="nav",side=tk.LEFT)
 
         # Window Rotation
-        self.__options_frame.add_label(label_text="Rotate Window", parent="rotation", bold=True)
+        self.__options_frame.add_label(label_text="Rotate Window",
+                                       parent="rotation", bold=True)
         self.__options_frame.add_label(label_text="Angle (in degrees):", parent="rotation")
         self.__options_frame.add_entry(parent="rotation", var_name="angle")
-        self.__options_frame.add_button(button_text="Rotate", function=self.__rotate_window, parent="rotation")
+        self.__options_frame.add_button(button_text="Rotate",
+                                        function=self.__rotate_window,
+                                        parent="rotation")
         
         # Clipping
-        self.__options_frame.add_label(label_text="Change Clipping Method", parent="clipping", bold=True)
-        self.__options_frame.add_button(button_text="Cohen Sutherland", function=lambda: self.__set_clipping_algorithm("C-S"), parent="clipping")
-        self.__options_frame.add_button(button_text="Liang Barsky", function=lambda: self.__set_clipping_algorithm("L-B"), parent="clipping")
+        self.__options_frame.add_label(label_text="Change Clipping Method",
+                                       parent="clipping", bold=True)
+        self.__options_frame.add_button(button_text="Cohen Sutherland",
+                                        function=lambda: self.__set_clipping_algorithm("C-S"),
+                                        parent="clipping")
+        self.__options_frame.add_button(button_text="Liang Barsky",
+                                        function=lambda: self.__set_clipping_algorithm("L-B"),
+                                        parent="clipping")
         
 
     def __get_object(self) -> list[tuple[float]]:
         try:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
-                messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
+                messagebox.showinfo("Information",
+                            "The object was not created.Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
             output = self.__create_object(name, f_coords, color, fill, obj_type)
@@ -125,7 +153,8 @@ class App:
             
     def __apply_transformations(self, object_index: int, transformations: list):
         obj = self.__display_file.objects[object_index]
-        obj.apply_transformations(transformations=transformations, transform_vector_function=self.__window.unrotate_vector)
+        obj.apply_transformations(transformations=transformations,
+                                  transform_vector_function=self.__window.unrotate_vector)
         self.__draw_all_objects()
 
     def __update_display_file(self, new_object: Obj2D.Objeto2D):
@@ -149,9 +178,12 @@ class App:
         self.__draw_all_objects()
 
     def __rotate_window(self, var_parent="rotation", var_name="angle"):
-        angle = self.__options_frame.get_var_value(parent=var_parent, var_name=var_name, var_type=float)
+        angle = self.__options_frame.get_var_value(parent=var_parent,
+                                                   var_name=var_name,
+                                                   var_type=float)
         if angle is None:
-            messagebox.showinfo("Information", "The angle value is not of expected type (float).")
+            messagebox.showinfo("Information",
+                                "The angle value is not of expected type (float).")
             return
         self.__window.set_normalization_matrix(angle)
         self.__draw_all_objects()
@@ -162,10 +194,15 @@ class App:
 
         # Convert the list of lists of 3D coordinates in a list of tuples of 2D coordinates
         for value in objects.values():
-            value["coordinates"] = [(coord[0], coord[1]) for coord in value["coordinates"]]
+            value["coordinates"] = [
+                (coord[0], coord[1]) for coord in value["coordinates"]
+                ]
 
         for name, value in objects.items():
-            self.__display_file.add_object(self.__create_object(name, value["coordinates"], value["color"]))
+            self.__display_file.add_object(self.__create_object(name,
+                                                                value["coordinates"],
+                                                                value["color"])
+                                          )
 
         self.__draw_all_objects()
 

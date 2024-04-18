@@ -12,10 +12,11 @@ class Clipper:
         self.__Yw_max = 1
         self.set_window(world_limits_type)
 
+
     def clip_point(self, coords: tuple[float]) -> tuple[float]:
-        if self.__Xw_min <= coords[0] <= self.__Xw_max and self.__Yw_min <= coords[1] <= self.__Yw_max:
-            return coords
-        return None
+        c_x = self.__Xw_min <= coords[0] <= self.__Xw_max
+        c_y = self.__Yw_min <= coords[1] <= self.__Yw_max
+        return coords if c_x and c_y else None
 
 
     def clip_line(self, coords: list[tuple[float]]) -> list[tuple[float]]:
@@ -37,10 +38,14 @@ class Clipper:
             print("Invalid clipping algorithm")
             return []
 
-    # TODO:
+
     def clip_curve(self, coords: list[tuple[float]]) -> list[tuple[float]]:
-        pass
-    
+        clipped_coords = []
+        for j in range(len(coords) - 1):
+            clipped_coords += self.clip_line([coords[j], coords[j + 1]])
+        return clipped_coords
+
+
     # Função para verificar se um ponto 'p' está dentro de uma aresta 'edge'
     def __inside(self, p, edge):
         # Usa o produto vetorial para determinar se o ponto está à esquerda
@@ -89,7 +94,8 @@ class Clipper:
         x = x1 + t * (x2 - x1)
         y = y1 + t * (y2 - y1)
         return x, y
-    
+
+
     def __compute_outcode(self, x: float, y: float) -> int:
         code = 0
         if x < self.__Xw_min:
@@ -101,6 +107,7 @@ class Clipper:
         elif y > self.__Yw_max:
             code |= 8
         return code
+
 
     def sutherland_hodgman(self, polygon: list[tuple[float]]) -> list[tuple[float]]:
         # Cria uma cópia do polígono original para modificar

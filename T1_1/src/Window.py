@@ -42,7 +42,10 @@ class Window:
         theta = self.__viewup_angle
 
         #print("theta:", theta, "rad of:", angle, "degrees")
-        T = np.array([[1, 0, 0], [0, 1, 0], [-self.__center[0], -self.__center[1], 1]])
+        T = np.array([
+                      [1, 0, 0], [0, 1, 0],
+                      [-self.__center[0], -self.__center[1], 1]
+                     ])
         R = self.__get_rotate_matrix(theta)
         #print("\nviewup:", self.__viewup)
         S = np.array(
@@ -70,7 +73,9 @@ class Window:
         return new_vector[0], new_vector[1]
 
     def __get_rotate_matrix(self, theta: float) -> np.array:
-        return np.array([[np.cos(theta), np.sin(theta), 0], [-np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+        return np.array([[np.cos(theta), np.sin(theta), 0],
+                         [-np.sin(theta), np.cos(theta), 0],
+                         [0, 0, 1]])
 
     def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
         return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
@@ -89,28 +94,20 @@ class Window:
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # if the point is outside the window, it is not drawn
-        if self.__clipper.clip_point(coords):
-            self.__viewport.draw_oval(*coords, color, self.__width_drawings)
+        self.__viewport.draw_oval(self.__clipper.clip_point(coords),
+                                  color, self.__width_drawings)
 
     def draw_line(self, coords: list[tuple[float]], color: str) -> None:
-        clipped_coords = self.__clipper.clip_line(coords)
-        if clipped_coords == []:
-            return
-        self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
+        self.__viewport.draw_line(self.__clipper.clip_line(coords),
+                                  color, self.__width_drawings)
 
     def draw_wireframe(self, coords: list[tuple[float]], color: str, fill=False) -> None:
-        clipped_coords = self.__clipper.clip_polygon(coords)
-        if clipped_coords == []:
-            return
-        self.__viewport.draw_polygon(clipped_coords, color, self.__width_drawings, fill)
+        self.__viewport.draw_polygon(self.__clipper.clip_polygon(coords),
+                                     color, self.__width_drawings, fill)
 
     def draw_curve(self, coords: list[tuple[float]], color: str) -> None:
-        for j in range(len(coords) - 1):
-            clipped_coords = self.__clipper.clip_line([coords[j], coords[j + 1]])
-            if clipped_coords == []:
-                continue
-
-            self.__viewport.draw_line(*clipped_coords, color, self.__width_drawings)
+        self.__viewport.draw_curve(self.__clipper.clip_curve(coords),
+                                   color, self.__width_drawings)
 
     def __update_width_drawings(self):
         self.__width_drawings = 2 * self.__scaling_factor
@@ -131,11 +128,13 @@ class Window:
 
     def pan_x(self, change: int) -> None:
         changed_x, changed_y = self.unrotate_vector(change, 0)
-        self.__center = np.dot(self.__center, self.__get_translate_matrix(changed_x, changed_y))
+        self.__center = np.dot(self.__center,
+                               self.__get_translate_matrix(changed_x, changed_y))
 
     def pan_y(self, change: int) -> None:
         changed_x, changed_y = self.unrotate_vector(0, change)
-        self.__center = np.dot(self.__center, self.__get_translate_matrix(changed_x, changed_y))
+        self.__center = np.dot(self.__center,
+                               self.__get_translate_matrix(changed_x, changed_y))
 
     def draw_viewport_outer_frame(self) -> None:
         self.__viewport.draw_outer_frame()

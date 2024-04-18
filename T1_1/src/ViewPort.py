@@ -16,28 +16,48 @@ class ViewPort:
         
         self.draw_outer_frame()
 
+
     def delete(self, object_name="all") -> None:
         self.__canvas.delete(object_name)
+
 
     def draw_outer_frame(self) -> None:
         self.__canvas.create_rectangle(self.__border_size, self.__border_size, self.__width + self.__border_size, self.__height + self.__border_size, outline="red")
 
-    def draw_oval(self, x: float, y: float, color: str, width) -> None:
+
+    def draw_oval(self, point:tuple[float], color: str, width) -> None:
+        if not point:
+            return
+        x, y = point
         xc, yc = self.viewport_transform(x, y)
         x0, y0 = xc - width, yc - width
         x1, y1 = xc + width, yc + width
         self.__canvas.create_oval(x0, y0, x1, y1, fill=color, outline=color)
 
-    def draw_line(self, p0:(float), p1:(float), color: str, width: float) -> None:
+
+    def draw_line(self, points:list[tuple[float]], color: str, width: float) -> None:
+        if points == []:
+            return
+        p0, p1 = points
         x0, y0 = self.viewport_transform(*p0)
         x1, y1 = self.viewport_transform(*p1)
         self.__canvas.create_line(x0, y0, x1, y1, fill=color, width=width)
 
+
     def draw_polygon(self, points: list[tuple[float]], color: str, width:float, fill = False) -> None:
+        if points == []:
+            return
         points = [self.viewport_transform(*point) for point in points]
         bg = color if fill else ""
         self.__canvas.create_polygon(points, fill=bg, outline=color, width=width)
-    
+
+
+    def draw_curve(self, points: list[tuple[float]], color: str, width: float) -> None:
+        for i in range(len(points) - 1):
+            line = [points[i], points[i + 1]]
+            self.draw_line(line, color, width)
+
+
     def viewport_transform(self, x: float, y: float) -> list[float]:
         vx = (x + 1) / 2 * self.__width + self.__border_size
         vy = (1 - (y + 1) / 2) * self.__height + self.__border_size
