@@ -81,15 +81,7 @@ class Window:
     def pan(self, dx: float, dy: float) -> None:
         self.__transformator.update_center(dx, dy)
         self.set_normalization_matrix()
- 
-    """
-    def pan_x(self, change: int) -> None:
-        self.__transformator.update_center(change, 0)
 
-    def pan_y(self, change: int) -> None:
-        self.__transformator.update_center(0, change)
-    """
-    
     def draw_viewport_outer_frame(self) -> None:
         self.__viewport.draw_outer_frame()
 

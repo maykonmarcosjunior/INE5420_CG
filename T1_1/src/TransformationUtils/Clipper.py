@@ -40,9 +40,25 @@ class Clipper:
 
 
     def clip_curve(self, coords: list[tuple[float]]) -> list[tuple[float]]:
+        # Clipped coords is a list of lists, where each nested list represents a piece of the curve
         clipped_coords = []
+        new_curve = True
+
         for j in range(len(coords) - 1):
-            clipped_coords += self.clip_line([coords[j], coords[j + 1]])
+            clipped_line = self.clip_line([coords[j], coords[j + 1]])
+
+            # If the clipped line is empty, start a new piece of the curve
+            if not clipped_line:
+                new_curve = True
+                continue
+
+            if new_curve:
+                clipped_coords.append([])
+                new_curve = False
+            
+            # Add the clipped points to the last curve created
+            clipped_coords[-1].extend(clipped_line)
+
         return clipped_coords
 
 

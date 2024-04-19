@@ -52,10 +52,11 @@ class ViewPort:
         self.__canvas.create_polygon(points, fill=bg, outline=color, width=width)
 
 
-    def draw_curve(self, points: list[tuple[float]], color: str, width: float) -> None:
-        for i in range(len(points) - 1):
-            line = [points[i], points[i + 1]]
-            self.draw_line(line, color, width)
+    def draw_curve(self, sub_curves: list[tuple[float]], color: str, width: float) -> None:
+        for sub_curve in sub_curves:
+            for i in range(len(sub_curve) - 1):
+                line = [sub_curve[i], sub_curve[i + 1]]
+                self.draw_line(line, color, width)
 
 
     def viewport_transform(self, x: float, y: float) -> list[float]:
