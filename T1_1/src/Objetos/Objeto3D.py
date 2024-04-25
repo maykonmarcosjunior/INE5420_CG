@@ -19,6 +19,55 @@ class Objeto3D(ABC):
         self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
         self.__color = color
 
+    def translation(self, dx: float, dy: float, dz: float=0) -> None:
+        matrix = self.get_translation_matrix(dx, dy, dz)
+        self.__coords = self.calculate_coords(matrix, convert=False)
+
+    def scaling(self, sx: float, sy: float, sz:float=0) -> None:
+        cx, cy, cz = self.geometric_center()
+        temp_matrix = np.matmul(
+            self.get_translation_matrix(-cx, -cy, -cz),
+            self.get_scaling_matrix(sx, sy, sz)
+        )
+        scaling_matrix = np.matmul(temp_matrix,
+                                   self.get_translation_matrix(cx, cy, cz))
+
+        self.__coords = self.calculate_coords(scaling_matrix, convert=False)
+
+
+    def rotation(self,
+                 rotation_type: str="RotationType.Z",
+                 angle: float=90,
+                 p1:tuple[float, float, float]=(0,0,0),
+                 p2:tuple[float, float, float]=(0,0,0)) -> None:
+        matrix = []
+
+        if rotation_type == str(Rotation3DType.any_axis):
+            matrix = self.__aux_rotation(p1, p2, angle)
+        elif rotation_type == str(Rotation3DType.X):
+            matrix = self.get_X_rotation_matrix(angle)
+        elif rotation_type == str(Rotation3DType.Y):
+            matrix = self.get_Y_rotation_matrix(angle)
+        elif rotation_type == str(Rotation3DType.Z):
+            matrix = self.get_Z_rotation_matrix(angle)
+        elif rotation_type == str(Rotation3DType.center_X):
+            center = self.geometric_center()
+            p2 = (center[0] + 1, center[1], center[2])
+            matrix = self.__aux_rotation(center, p2, angle)
+        elif rotation_type == str(Rotation3DType.center_Y):
+            center = self.geometric_center()
+            p2 = (center[0], center[1] + 1, center[2])
+            matrix = self.__aux_rotation(center, p2, angle)
+        elif rotation_type == str(Rotation3DType.center_Z):
+            center = self.geometric_center()
+            p2 = (center[0], center[1], center[2] + 1)
+            matrix = self.__aux_rotation(center, p2, angle)
+        else:
+            print("Invalid rotation type")
+            return
+
+        self.__coords = self.calculate_coords(matrix, convert=False)
+
     def apply_transformations(self, transformations: list[Transformation],
                               transform_vector_function: callable) -> None:
         for transform in transformations:
@@ -51,7 +100,7 @@ class Objeto3D(ABC):
             [
                 [1, 0, 0, 0],
                 [0, np.cos(theta), np.sin(theta), 0],
-                [0, -np.sin(theta), np.cos(theta), 0],
+                [0,-np.sin(theta), np.cos(theta), 0],
                 [0, 0, 0, 1],
             ]
         )
@@ -60,7 +109,7 @@ class Objeto3D(ABC):
         theta = np.radians(angle)
         return np.array(
             [
-                [np.cos(theta), 0, -np.sin(theta), 0],
+                [np.cos(theta), 0,-np.sin(theta), 0],
                 [0, 1, 0, 0],
                 [np.sin(theta), 0, np.cos(theta), 0],
                 [0, 0, 0, 1],
@@ -71,7 +120,7 @@ class Objeto3D(ABC):
         theta = np.radians(angle)
         return np.array(
             [
-                [np.cos(theta), np.sin(theta), 0, 0],
+                [ np.cos(theta), np.sin(theta), 0, 0],
                 [-np.sin(theta), np.cos(theta), 0, 0],
                 [0, 0, 1, 0],
                 [0, 0, 0, 1],
@@ -80,21 +129,6 @@ class Objeto3D(ABC):
 
     def geometric_center(self) -> tuple[float]:
         return tuple(np.mean(self.__coords, axis=0))
-
-    def translation(self, dx: float, dy: float, dz: float=0) -> None:
-        matrix = self.get_translation_matrix(dx, dy, dz)
-        self.__coords = self.calculate_coords(matrix, convert=False)
-
-    def scaling(self, sx: float, sy: float, sz:float=0) -> None:
-        cx, cy, cz = self.geometric_center()
-        temp_matrix = np.matmul(
-            self.get_translation_matrix(-cx, -cy, -cz),
-            self.get_scaling_matrix(sx, sy, sz)
-        )
-        scaling_matrix = np.matmul(temp_matrix,
-                                   self.get_translation_matrix(cx, cy, cz))
-
-        self.__coords = self.calculate_coords(scaling_matrix, convert=False)
 
 
     def __get_vector_angle(self, p1:tuple[float, float, float],
@@ -132,40 +166,6 @@ class Objeto3D(ABC):
         temp_matrix = np.matmul(temp_matrix, Rx_reverse)
         temp_matrix = np.matmul(temp_matrix, T_reverse)
         return temp_matrix
-
-
-    def rotation(self,
-                 rotation_type: str="RotationType.Z",
-                 angle: float=90,
-                 p1:tuple[float, float, float]=(0,0,0),
-                 p2:tuple[float, float, float]=(0,0,0)) -> None:
-        matrix = []
-
-        if rotation_type == str(Rotation3DType.X):
-            matrix = self.get_X_rotation_matrix(angle)
-        elif rotation_type == str(Rotation3DType.Y):
-            matrix = self.get_Y_rotation_matrix(angle)
-        elif rotation_type == str(Rotation3DType.Z):
-            matrix = self.get_Z_rotation_matrix(angle)
-        elif rotation_type == str(Rotation3DType.center_X):
-            center = self.geometric_center()
-            p2 = (center[0] + 1, center[1], center[2])
-            matrix = self.__aux_rotation(center, p2, angle)
-        elif rotation_type == str(Rotation3DType.center_Y):
-            center = self.geometric_center()
-            p2 = (center[0], center[1] + 1, center[2])
-            matrix = self.__aux_rotation(center, p2, angle)
-        elif rotation_type == str(Rotation3DType.center_Z):
-            center = self.geometric_center()
-            p2 = (center[0], center[1], center[2] + 1)
-            matrix = self.__aux_rotation(center, p2, angle)
-        elif rotation_type == str(Rotation3DType.any_axis):
-            matrix = self.__aux_rotation(p1, p2, angle)
-        else:
-            print("Invalid rotation type")
-            return
-
-        self.__coords = self.calculate_coords(matrix, convert=False)
     
     
     @property
@@ -195,7 +195,7 @@ class Objeto3D(ABC):
 
 
     def __convert_to_tuples_list(self, coords: np.ndarray) -> list[tuple[float]]:
-        return [tuple(float(j) for j in i[:-1]) for i in coords.tolist()]
+        return [tuple(float(j) for j in i) for i in coords.tolist()]
 
 
     def calculate_coords(self, matrix: np.ndarray, convert=True) -> list[tuple[float]]:
@@ -206,7 +206,7 @@ class Objeto3D(ABC):
             ]
         )
         if convert:
-            R = self.__convert_to_tuples_list(R)
+            R = [(i[0], i[1]) for i in self.__convert_to_tuples_list(R)]
         return R
 
     

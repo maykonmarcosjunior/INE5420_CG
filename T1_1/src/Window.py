@@ -32,7 +32,6 @@ class Window:
         self.__transformator.set_normalization_matrix(angle)
     
     def draw_object(self, object: Obj3D.Objeto3D):
-        # print(self.__transformator.matrix)
         obj_coords = object.calculate_coords(self.__transformator.matrix)
 
         if object.obj_type == Obj3D.ObjectType.POINT:
