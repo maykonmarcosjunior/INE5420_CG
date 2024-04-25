@@ -23,10 +23,11 @@ class Transformation(ABC):
 
 
 class Translation(Transformation):
-    def __init__(self, dx: float, dy: float):
+    def __init__(self, dx: float, dy: float, dz: float=0):
         super().__init__()
         self.__dx = dx
         self.__dy = dy
+        self.__dz = dz
 
     @property
     def dx(self) -> float:
@@ -36,15 +37,20 @@ class Translation(Transformation):
     def dy(self) -> float:
         return self.__dy
 
+    @property
+    def dz(self) -> float:
+        return self.__dz
+
     def __str__(self) -> str:
-        return f"Translation: dx: {self.__dx} dy: {self.__dy}"
+        return f"Translation: dx: {self.__dx} dy: {self.__dy} dz: {self.__dz}"
 
 
 class Scaling(Transformation):
-    def __init__(self, sx: float, sy: float):
+    def __init__(self, sx: float, sy: float, sz: float=1):
         super().__init__()
         self.__sx = sx
         self.__sy = sy
+        self.__sz = sz
 
     @property
     def sx(self) -> float:
@@ -54,18 +60,23 @@ class Scaling(Transformation):
     def sy(self) -> float:
         return self.__sy
 
+    @property
+    def sz(self) -> float:
+        return self.__sz
+
     def __str__(self) -> str:
-        return f"Scaling: sx: {self.__sx} sy: {self.__sy}"
+        return f"Scaling: sx: {self.__sx} sy: {self.__sy} sz: {self.__sz}"
 
 
 class Rotation(Transformation):
-    def __init__(self, rotation_type: str, angle: float, x: float = 0, y: float = 0):
+    def __init__(self, rotation_type: str, angle: float, x: float = 0, y: float = 0, z: float = 0):
         super().__init__()
 
         self.__rotation_type = rotation_type
         self.__angle = angle
         self.__x = x
         self.__y = y
+        self.__z = z
 
     @property
     def angle(self) -> float:
@@ -83,5 +94,9 @@ class Rotation(Transformation):
     def y(self) -> float:
         return self.__y
 
+    @property
+    def z(self) -> float:
+        return self.__z
+
     def __str__(self) -> str:
-        return f"Rotation: {self.__rotation_type}, angle: {self.__angle}, x: {self.__x}, y: {self.__y}"
+        return f"Rotation: {self.__rotation_type}, angle: {self.__angle}, x: {self.__x}, y: {self.__y} z: {self.__z}"

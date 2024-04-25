@@ -1,4 +1,5 @@
 import numpy as np
+from src.Objetos.Objeto3D import Objeto3D, ObjectType
 
 class Transformator:
     def __init__(self, system:str="SCN", height: int = 400, width: int = 600):
@@ -13,6 +14,7 @@ class Transformator:
 
 
         self.__SCN_matrix = None
+        self.obj = Objeto3D("generic_obj", [(0,0,0)])
         # view up vector
         self.__viewup = np.array([0, 1, 1])
         self.__viewup_angle = 0
@@ -24,19 +26,13 @@ class Transformator:
         theta = self.__viewup_angle
 
         #print("theta:", theta, "rad of:", angle, "degrees")
-        T = np.array([
-                      [1, 0, 0], [0, 1, 0],
-                      [-self.__center[0], -self.__center[1], 1]
-                     ])
+        dx = -self.__center[0]
+        dy = -self.__center[1]
+        sx = 2 * self.__scaling_factor / (self.__xwmax - self.__xwmin)
+        sy = 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin)
+        T = self.__get_translate_matrix(dx, dy)
         R = self.__get_rotate_matrix(theta)
-        #print("\nviewup:", self.__viewup)
-        S = np.array(
-            [
-                [2 * self.__scaling_factor / (self.__xwmax - self.__xwmin), 0, 0],
-                [0, 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin), 0],
-                [0, 0, 1],
-            ]
-        )
+        S = self.__get_scale_matrix(sx, sy)
         # self.__SCN_matrix = T @ R @ S
         self.__SCN_matrix = np.matmul(np.matmul(T, R), S)
 
@@ -51,18 +47,19 @@ class Transformator:
 
     def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
         old_vector = np.array([dx, dy, 0])
-        rotate_matrix = self.__get_rotate_matrix(- self.__viewup_angle)
+        rotate_matrix = self.__get_rotate_matrix(-self.__viewup_angle)
         new_vector = np.dot(old_vector, rotate_matrix)
         return new_vector[0], new_vector[1]
 
     def __get_rotate_matrix(self, theta: float) -> np.array:
-        return np.array([[np.cos(theta), np.sin(theta), 0],
-                         [-np.sin(theta), np.cos(theta), 0],
-                         [0, 0, 1]])
+        return self.obj.__get_Z_rotation_matrix(theta)
 
     def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
-        return np.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
+        return self.obj.__get_translation_matrix(dx, dy)
     
+    def __get_scale_matrix(self, sx: float, sy: float) -> np.array:
+        return self.obj.__get_scaling_matrix(sx, sy)
+
     @property
     def matrix(self) -> np.array:
         return self.__SCN_matrix

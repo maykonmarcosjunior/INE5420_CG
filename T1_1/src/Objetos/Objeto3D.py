@@ -14,7 +14,8 @@ class ObjectType(Enum):
 
 
 class Objeto3D(ABC):
-    def __init__(self, name: str, coords: list[tuple[float]], obj_type=None, color="#000000"):
+    def __init__(self, name: str, coords: list[tuple[float]],
+                 obj_type=ObjectType.POINT, color="#000000"):
         self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
         self.__color = color
 
