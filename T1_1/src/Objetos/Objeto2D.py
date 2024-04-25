@@ -4,6 +4,7 @@ from random import randint
 from src.Objetos.Objeto3D import Objeto3D
 from src.TransformationUtils.Transformations import RotationType, Transformation
 
+'''
 class ObjectType(Enum):
     OBJECT2D = 1
     POINT = 2
@@ -11,6 +12,7 @@ class ObjectType(Enum):
     WIREFRAME = 4
     BEZIER_CURVE = 5
     BSPLINE_CURVE = 6
+'''
 
 
 class Objeto2D(Objeto3D):

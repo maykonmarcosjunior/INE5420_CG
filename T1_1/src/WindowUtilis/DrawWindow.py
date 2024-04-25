@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import colorchooser
-from src.Objetos.Objeto2D import ObjectType
+from src.Objetos.Objeto3D import ObjectType
 
 
 class DrawWindow(tk.Toplevel):

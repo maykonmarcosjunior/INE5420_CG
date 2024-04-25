@@ -2,7 +2,7 @@ import tkinter as tk
 # import numpy as np
 
 import src.ViewPort as VP
-from src.Objetos import Objeto2D as Obj2D
+from src.Objetos import Objeto3D as Obj3D
 from src.TransformationUtils.Clipper import Clipper
 from src.TransformationUtils.Transformator import Transformator
 
@@ -31,16 +31,17 @@ class Window:
     def set_normalization_matrix(self, angle: float = 0):
         self.__transformator.set_normalization_matrix(angle)
     
-    def draw_object(self, object: Obj2D.Objeto2D):
+    def draw_object(self, object: Obj3D.Objeto3D):
+        # print(self.__transformator.matrix)
         obj_coords = object.calculate_coords(self.__transformator.matrix)
 
-        if object.obj_type == Obj2D.ObjectType.POINT:
+        if object.obj_type == Obj3D.ObjectType.POINT:
             self.draw_point(obj_coords[0], object.color)
-        elif object.obj_type == Obj2D.ObjectType.LINE:
+        elif object.obj_type == Obj3D.ObjectType.LINE:
             self.draw_line(obj_coords, object.color)
-        elif object.obj_type == Obj2D.ObjectType.WIREFRAME:
+        elif object.obj_type == Obj3D.ObjectType.WIREFRAME:
             self.draw_wireframe(obj_coords, object.color, object.fill)
-        elif object.obj_type in [Obj2D.ObjectType.BEZIER_CURVE, Obj2D.ObjectType.BSPLINE_CURVE]:
+        elif object.obj_type in [Obj3D.ObjectType.BEZIER_CURVE, Obj3D.ObjectType.BSPLINE_CURVE]:
             self.draw_curve(object.generate_curve(obj_coords), object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:

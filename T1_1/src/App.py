@@ -4,6 +4,7 @@ import ast
 
 import src.Window as WW
 from src.Objetos import Objeto2D as Obj2D
+from src.Objetos import Objeto3D as Obj3D
 from src.Objetos import Ponto2D as P2D
 from src.Objetos import Linha2D as L2D
 from src.Objetos import WireFrame as WF
@@ -116,10 +117,11 @@ class App:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
             print("Error in get_object: ", e)
 
-    def __create_object(self, name, coords, color, fill=False, obj_type: int=Obj2D.ObjectType.OBJECT2D) -> Obj2D:
-        if obj_type == Obj2D.ObjectType.BEZIER_CURVE.value:
+    def __create_object(self, name, coords, color, fill=False,
+                        obj_type: int=Obj3D.ObjectType.OBJECT3D) -> Obj3D:
+        if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
-        elif obj_type == Obj2D.ObjectType.BSPLINE_CURVE.value:
+        elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
             output = BSC.CurvaBSpline(name, coords, color=color)
         elif len(coords) == 1:
             output = P2D.Ponto2D(name, coords, color=color)
@@ -157,7 +159,7 @@ class App:
                                   transform_vector_function=self.__window.unrotate_vector)
         self.__draw_all_objects()
 
-    def __update_display_file(self, new_object: Obj2D.Objeto2D):
+    def __update_display_file(self, new_object: Obj3D.Objeto3D):
         self.__display_file.add_object(new_object)
         self.__draw_all_objects()
 

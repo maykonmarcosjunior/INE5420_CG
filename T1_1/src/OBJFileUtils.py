@@ -1,7 +1,7 @@
 from tkinter import filedialog
 from os import path, getcwd
 
-from src.Objetos.Objeto2D import Objeto2D, ObjectType
+from src.Objetos.Objeto3D import Objeto3D, ObjectType
 
 
 class OBJParser:
@@ -168,7 +168,7 @@ class OBJParser:
 
 
 class OBJGenerator:
-    def __init__(self, object_list: list[Objeto2D]):
+    def __init__(self, object_list: list[Objeto3D]):
         self.__vertices = {}
 
         self.__generate_obj(object_list)
@@ -185,7 +185,7 @@ class OBJGenerator:
             filetypes=[("Wavefront OBJ", "*.obj")],
         )
 
-    def __generate_obj(self, object_list: list[Objeto2D]):
+    def __generate_obj(self, object_list: list[Objeto3D]):
         file_name = self.__choose_file_name()
         if not file_name:
             print("Please choose a file name.")

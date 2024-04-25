@@ -5,7 +5,7 @@ from abc import ABC
 from src.TransformationUtils.Transformations import Rotation3DType, Transformation
 
 class ObjectType(Enum):
-    OBJECT2D = 1
+    OBJECT3D = 1
     POINT = 2
     LINE = 3
     WIREFRAME = 4
@@ -15,7 +15,7 @@ class ObjectType(Enum):
 
 class Objeto3D(ABC):
     def __init__(self, name: str, coords: list[tuple[float]],
-                 obj_type=ObjectType.POINT, color="#000000"):
+                 obj_type=ObjectType.OBJECT3D, color="#000000"):
         self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
         self.__color = color
 
@@ -40,13 +40,13 @@ class Objeto3D(ABC):
                 case "Scaling":
                     self.scaling(transform.sx, transform.sy, transform.sz)
 
-    def __get_translation_matrix(self, dx: float, dy: float, dz:float=0) -> np.array:
-        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [dx, dy, dz, 1]])
+    def get_translation_matrix(self, dx: float, dy: float, dz:float=0) -> np.array:
+        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [dx, dy, dz, 1]])
 
-    def __get_scaling_matrix(self, sx: float, sy: float, sz: float=0) -> np.array:
+    def get_scaling_matrix(self, sx: float, sy: float, sz: float=0) -> np.array:
         return np.array([[sx, 0, 0, 0], [0, sy, 0, 0], [0, 0, sz, 0], [0, 0, 0, 1]])
 
-    def __get_X_rotation_matrix(self, angle: float) -> np.array:
+    def get_X_rotation_matrix(self, angle: float) -> np.array:
         theta = np.radians(angle)
         return np.array(
             [
@@ -57,7 +57,7 @@ class Objeto3D(ABC):
             ]
         )
 
-    def __get_Y_rotation_matrix(self, angle: float) -> np.array:
+    def get_Y_rotation_matrix(self, angle: float) -> np.array:
         theta = np.radians(angle)
         return np.array(
             [
@@ -68,7 +68,7 @@ class Objeto3D(ABC):
             ]
         )
 
-    def __get_Z_rotation_matrix(self, angle: float) -> np.array:
+    def get_Z_rotation_matrix(self, angle: float) -> np.array:
         theta = np.radians(angle)
         return np.array(
             [
@@ -83,17 +83,17 @@ class Objeto3D(ABC):
         return tuple(np.mean(self.__coords, axis=0))
 
     def translation(self, dx: float, dy: float, dz: float=0) -> None:
-        matrix = self.__get_translation_matrix(dx, dy, dz)
+        matrix = self.get_translation_matrix(dx, dy, dz)
         self.__coords = self.calculate_coords(matrix, convert=False)
 
     def scaling(self, sx: float, sy: float, sz:float=0) -> None:
         cx, cy, cz = self.geometric_center()
         temp_matrix = np.matmul(
-            self.__get_translation_matrix(-cx, -cy, -cz),
-            self.__get_scaling_matrix(sx, sy, sz)
+            self.get_translation_matrix(-cx, -cy, -cz),
+            self.get_scaling_matrix(sx, sy, sz)
         )
         scaling_matrix = np.matmul(temp_matrix,
-                                   self.__get_translation_matrix(cx, cy, cz))
+                                   self.get_translation_matrix(cx, cy, cz))
 
         self.__coords = self.calculate_coords(scaling_matrix, convert=False)
 
@@ -117,18 +117,18 @@ class Objeto3D(ABC):
                        angle: float) -> np.array:
         Qx, Qy, Qz = self.__get_vector_angle(P, p2)
         dx, dy, dz = P
-        T = self.__get_translation_matrix(-dx, -dy, -dz)
-        Rx = self.__get_X_rotation_matrix(Qx)
-        Rz = self.__get_Z_rotation_matrix(Qz)
+        T = self.get_translation_matrix(-dx, -dy, -dz)
+        Rx = self.get_X_rotation_matrix(Qx)
+        Rz = self.get_Z_rotation_matrix(Qz)
         temp_matrix = np.matmul(T, Rx)
         temp_matrix = np.matmul(temp_matrix, Rz)
         # rotation itself
-        Ry = self.__get_Y_rotation_matrix(angle)
+        Ry = self.get_Y_rotation_matrix(angle)
         temp_matrix = np.matmul(temp_matrix, Ry)
         # undoing auxiliary transformations
-        Rx_reverse = self.__get_X_rotation_matrix(-Qx)
-        Rz_reverse = self.__get_Z_rotation_matrix(-Qz)
-        T_reverse = self.__get_translation_matrix(dx, dy, dz)
+        Rx_reverse = self.get_X_rotation_matrix(-Qx)
+        Rz_reverse = self.get_Z_rotation_matrix(-Qz)
+        T_reverse = self.get_translation_matrix(dx, dy, dz)
         temp_matrix = np.matmul(temp_matrix, Rz_reverse)
         temp_matrix = np.matmul(temp_matrix, Rx_reverse)
         temp_matrix = np.matmul(temp_matrix, T_reverse)
@@ -141,11 +141,11 @@ class Objeto3D(ABC):
         matrix = []
 
         if rotation_type == str(Rotation3DType.X):
-            matrix = self.__get_X_rotation_matrix(angle)
+            matrix = self.get_X_rotation_matrix(angle)
         elif rotation_type == str(Rotation3DType.Y):
-            matrix = self.__get_Y_rotation_matrix(angle)
+            matrix = self.get_Y_rotation_matrix(angle)
         elif rotation_type == str(Rotation3DType.Z):
-            matrix = self.__get_Z_rotation_matrix(angle)
+            matrix = self.get_Z_rotation_matrix(angle)
         elif rotation_type == str(Rotation3DType.center_X):
             center = self.geometric_center()
             p2 = (center[0] + 1, center[1], center[2])
@@ -194,7 +194,7 @@ class Objeto3D(ABC):
 
 
     def __convert_to_tuples_list(self, coords: np.ndarray) -> list[tuple[float]]:
-        return [tuple(float(j) for j in i) for i in coords.tolist()]
+        return [tuple(float(j) for j in i[:-1]) for i in coords.tolist()]
 
 
     def calculate_coords(self, matrix: np.ndarray, convert=True) -> list[tuple[float]]:
@@ -209,17 +209,18 @@ class Objeto3D(ABC):
         return R
 
     
-    def certify_format(self, name:str, coords:list[tuple[float]], obj_type:str):
+    def certify_format(self, name:str, coords:list[tuple[float]],
+                       obj_type:str) -> tuple[str, np.array, ObjectType]:
         if not isinstance(name, str):
             print("Invalid name for", name, ", renamed to 'obj'")
             name = 'obj'
         if len(coords) == 0:
             print("No coordinates defined for", name, ", defined as (0,0,0)")
             coords = [(0,0,0)]
-        if obj_type not in ObjectType:
-            print("Invalid object type")
-            obj_type = None
-        if obj_type is None:
+        if obj_type not in [ObjectType.POINT, ObjectType.LINE,
+                                 ObjectType.WIREFRAME, ObjectType.OBJECT3D,
+                                 ObjectType.BEZIER_CURVE, ObjectType.BSPLINE_CURVE]:
+            print("Invalid object type", obj_type)
             print("Object type not defined for", name, ", automatically guessed")
             if len(coords) == 1:
                 obj_type = ObjectType.POINT

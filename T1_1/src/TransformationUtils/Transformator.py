@@ -2,21 +2,23 @@ import numpy as np
 from src.Objetos.Objeto3D import Objeto3D, ObjectType
 
 class Transformator:
-    def __init__(self, system:str="SCN", height: int = 400, width: int = 600):
+    def __init__(self, system:str="SCN",
+                 height: int = 400,
+                 width: int = 600):
         self.__system = system
 
         self.__xwmin = self.__ywmin = 0
         self.__xwmax = width
         self.__ywmax = height
         # middle point of the window
-        self.__center = np.array([width / 2, height / 2, 1])
+        self.__center = np.array([width / 2, height / 2, 0, 1])
         self.__scaling_factor = 1
 
 
         self.__SCN_matrix = None
-        self.obj = Objeto3D("generic_obj", [(0,0,0)])
+        self.obj = Objeto3D("generic_obj", [(0,0,0)], ObjectType.POINT)
         # view up vector
-        self.__viewup = np.array([0, 1, 1])
+        self.__viewup = np.array([0, 1, 0, 1])
         self.__viewup_angle = 0
         self.set_normalization_matrix(0)
 
@@ -45,20 +47,20 @@ class Transformator:
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
         self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
 
-    def unrotate_vector(self, dx: float, dy: float) -> tuple[float, float]:
-        old_vector = np.array([dx, dy, 0])
+    def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float]:
+        old_vector = np.array([dx, dy, dz, 0])
         rotate_matrix = self.__get_rotate_matrix(-self.__viewup_angle)
         new_vector = np.dot(old_vector, rotate_matrix)
         return new_vector[0], new_vector[1]
 
     def __get_rotate_matrix(self, theta: float) -> np.array:
-        return self.obj.__get_Z_rotation_matrix(theta)
+        return self.obj.get_Z_rotation_matrix(theta)
 
     def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
-        return self.obj.__get_translation_matrix(dx, dy)
+        return self.obj.get_translation_matrix(dx, dy)
     
     def __get_scale_matrix(self, sx: float, sy: float) -> np.array:
-        return self.obj.__get_scaling_matrix(sx, sy)
+        return self.obj.get_scaling_matrix(sx, sy)
 
     @property
     def matrix(self) -> np.array:
