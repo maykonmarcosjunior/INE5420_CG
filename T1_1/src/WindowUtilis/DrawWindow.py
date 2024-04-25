@@ -11,7 +11,7 @@ class DrawWindow(tk.Toplevel):
         self.__color = "#000000"
         self.__fill_var_bool = None
 
-        self.__object_type_var = tk.IntVar(self, ObjectType.OBJECT2D.value)
+        self.__object_type_var = tk.IntVar(self, ObjectType.OBJECT3D.value)
         self.__object_type = None
 
         self.title("Draw Options")
@@ -21,9 +21,12 @@ class DrawWindow(tk.Toplevel):
         frame_obj_type.pack(pady=10)
 
         tk.Label(frame_obj_type, text="Object Type: ").pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Objeto 2D", variable=self.__object_type_var, value=ObjectType.OBJECT2D.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Curva de Bézier", variable=self.__object_type_var, value=ObjectType.BEZIER_CURVE.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Curva B-Spline", variable=self.__object_type_var, value=ObjectType.BSPLINE_CURVE.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Objeto 2D", variable=self.__object_type_var,
+                       value=ObjectType.OBJECT3D.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Curva de Bézier", variable=self.__object_type_var,
+                       value=ObjectType.BEZIER_CURVE.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Curva B-Spline", variable=self.__object_type_var,
+                       value=ObjectType.BSPLINE_CURVE.value).pack(side=tk.LEFT)
 
         tk.Label(self, text="Name:").pack()
         self.__object_name = tk.Entry(self)
@@ -35,14 +38,19 @@ class DrawWindow(tk.Toplevel):
         self.__coord_entry = tk.Entry(self)
         self.__coord_entry.pack(fill=tk.X, padx=20)
 
-        tk.Button(self, text="Choose Color", command=self.__choose_color).pack(pady=(20, 0))
+        tk.Button(self, text="Choose Color",
+                  command=self.__choose_color).pack(pady=(20, 0))
 
         tk.Label(self, text="Selected Color:").pack(pady=10)
-        self.__selected_color_label = tk.Label(self, bg=self.__color, width=5, height=1)
+        self.__selected_color_label = tk.Label(self, bg=self.__color,
+                                               width=5, height=1)
         self.__selected_color_label.pack()
 
         self.__fill_var = tk.IntVar()
-        tk.Checkbutton(self, text="Fill Polygon", variable=self.__fill_var, onvalue=1, offvalue=0).pack(pady=20)
+        tk.Checkbutton(self, text="Fill Polygon",
+                       variable=self.__fill_var,
+                       onvalue=1,
+                       offvalue=0).pack(pady=20)
 
         tk.Button(self, text="Submit", command=self.__submit_option).pack(pady=(20, 0))
 

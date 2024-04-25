@@ -1,12 +1,12 @@
 from enum import Enum
 from abc import ABC
 
-
+'''
 class RotationType(Enum):
     world_center = 0
     object_center = 1
     any_point = 2
-
+'''
 
 class Rotation3DType(Enum):
     X = 0
@@ -69,14 +69,16 @@ class Scaling(Transformation):
 
 
 class Rotation(Transformation):
-    def __init__(self, rotation_type: str, angle: float, x: float = 0, y: float = 0, z: float = 0):
+    def __init__(self, rotation_type: str,
+                 angle: float,
+                 p1:float=(0,0,0),
+                 p2:float=(0,0,0)):
         super().__init__()
 
         self.__rotation_type = rotation_type
         self.__angle = angle
-        self.__x = x
-        self.__y = y
-        self.__z = z
+        self.__p1 = p1
+        self.__p2 = p2
 
     @property
     def angle(self) -> float:
@@ -87,16 +89,12 @@ class Rotation(Transformation):
         return self.__rotation_type
 
     @property
-    def x(self) -> float:
-        return self.__x
+    def p1(self) -> float:
+        return self.__p1
 
     @property
-    def y(self) -> float:
-        return self.__y
-
-    @property
-    def z(self) -> float:
-        return self.__z
+    def p2(self) -> float:
+        return self.__p2
 
     def __str__(self) -> str:
-        return f"Rotation: {self.__rotation_type}, angle: {self.__angle}, x: {self.__x}, y: {self.__y} z: {self.__z}"
+        return f"Rotation: {self.__rotation_type}, angle: {self.__angle}, p1: {self.__p1}, p2: {self.__p2}"

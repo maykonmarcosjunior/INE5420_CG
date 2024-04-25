@@ -33,9 +33,8 @@ class Objeto3D(ABC):
                     self.rotation(
                         transform.rotation_type,
                         transform.angle,
-                        transform.x,
-                        transform.y,
-                        transform.z,
+                        transform.p1,
+                        transform.p2
                     )
                 case "Scaling":
                     self.scaling(transform.sx, transform.sy, transform.sz)
@@ -135,9 +134,11 @@ class Objeto3D(ABC):
         return temp_matrix
 
 
-    def rotation(self, rotation_type: str="RotationType.Z",
-                 angle: float=90, P:tuple[float, float, float]=(0,0,0),
-                p2:tuple[float, float, float]=(0,0,0)) -> None:
+    def rotation(self,
+                 rotation_type: str="RotationType.Z",
+                 angle: float=90,
+                 p1:tuple[float, float, float]=(0,0,0),
+                 p2:tuple[float, float, float]=(0,0,0)) -> None:
         matrix = []
 
         if rotation_type == str(Rotation3DType.X):
@@ -159,7 +160,7 @@ class Objeto3D(ABC):
             p2 = (center[0], center[1], center[2] + 1)
             matrix = self.__aux_rotation(center, p2, angle)
         elif rotation_type == str(Rotation3DType.any_axis):
-            matrix = self.__aux_rotation(P, p2, angle)
+            matrix = self.__aux_rotation(p1, p2, angle)
         else:
             print("Invalid rotation type")
             return
