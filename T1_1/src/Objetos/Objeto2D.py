@@ -1,7 +1,7 @@
 import numpy as np
 from enum import Enum
 from random import randint
-from abc import ABC
+from src.Objetos.Objeto3D import Objeto3D
 from src.TransformationUtils.Transformations import RotationType, Transformation
 
 class ObjectType(Enum):
@@ -13,11 +13,12 @@ class ObjectType(Enum):
     BSPLINE_CURVE = 6
 
 
-class Objeto2D(ABC):
+class Objeto2D(Objeto3D):
     def __init__(self, name: str, coords: list[tuple[float]], obj_type=None, color="#000000"):
-        self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
-        self.__color = color
+        super_coords = [(c[0], c[1], 0.0) for c in coords]
+        super().__init__(name, super_coords, obj_type, color)
 
+'''
     def calculate_coords(self, matrix: np.ndarray) -> list[tuple[float]]:
         R = np.array(
             [
@@ -195,3 +196,4 @@ class Objeto2D(ABC):
                 coords = [(i, i) for i in range(len(coords))]
         output_coords = np.array(coords)
         return name, output_coords, obj_type
+'''

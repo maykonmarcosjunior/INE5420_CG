@@ -8,6 +8,15 @@ class RotationType(Enum):
     any_point = 2
 
 
+class Rotation3DType(Enum):
+    X = 0
+    Y = 1
+    Z = 2
+    center_X = 3
+    center_Y = 4
+    center_Z = 5
+    any_axis = 6
+
 class Transformation(ABC):
     def __init__(self):
         pass
