@@ -131,16 +131,21 @@ class Objeto3D(ABC):
         return tuple(np.mean(self.__coords, axis=0))
 
 
-    def __get_vector_angle(self, p1:tuple[float, float, float],
-                           p2:tuple[float, float, float]) -> tuple[float, float, float]:
+    def get_vector_angle(self,
+                         p1:tuple[float, float, float],
+                         p2:tuple[float, float, float]) -> tuple[float, float, float]:
         x1, y1, z1 = p1
         x2, y2, z2 = p2
         dx = x2 - x1
         dy = y2 - y1
         dz = z2 - z1
-        Qx = np.arctan2(dy, dx)
-        Qy = np.arctan2(dz, dy)
-        Qz = np.arctan2(dx, dz)        
+        Qx = np.rad2deg(np.arctan2(dy, dx))
+        Qy = np.rad2deg(np.arctan2(dx, dy))
+        Qz = np.rad2deg(np.arctan2(dx, dz))
+        ######
+        Qx = np.rad2deg(np.arctan2(dx, np.sqrt(dy**2 + dz**2)))
+        Qy = np.rad2deg(np.arctan2(dy, np.sqrt(dx**2 + dz**2))) 
+        Qz = np.rad2deg(np.arctan2(np.sqrt(dy**2 + dx**2), dz))
         return Qx, Qy, Qz
 
 
@@ -148,7 +153,10 @@ class Objeto3D(ABC):
                        P:tuple[float, float, float],
                        p2:tuple[float, float, float],
                        angle: float) -> np.array:
-        Qx, Qy, Qz = self.__get_vector_angle(P, p2)
+        print("P =", P)
+        print("p2 =", p2)
+        Qx, Qy, Qz = self.get_vector_angle(P, p2)
+        print("Qx =", Qx, "Qy =", Qy, "Qz =", Qz)
         dx, dy, dz = P
         T = self.get_translation_matrix(-dx, -dy, -dz)
         Rx = self.get_X_rotation_matrix(Qx)

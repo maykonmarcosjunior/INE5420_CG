@@ -17,7 +17,9 @@ class ObjectType(Enum):
 
 class Objeto2D(Objeto3D):
     def __init__(self, name: str, coords: list[tuple[float]], obj_type=None, color="#000000"):
-        super_coords = [(c[0], c[1], 0.0) for c in coords]
+        super_coords = coords[:]
+        if any(len(c) < 3 for c in coords):
+            super_coords = [(c[0], c[1], 0.0) for c in coords]
         super().__init__(name, super_coords, obj_type, color)
 
 '''
