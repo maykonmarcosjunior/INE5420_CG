@@ -130,7 +130,6 @@ class Objeto3D(ABC):
     def geometric_center(self) -> tuple[float]:
         return tuple(np.mean(self.__coords, axis=0))
 
-
     def get_vector_angle(self,
                          p1:tuple[float, float, float],
                          p2:tuple[float, float, float]) -> tuple[float, float, float]:
@@ -151,31 +150,34 @@ class Objeto3D(ABC):
 
     def __aux_rotation(self,
                        P:tuple[float, float, float],
-                       p2:tuple[float, float, float],
+                       A:tuple[float, float, float],
                        angle: float) -> np.array:
-        print("P =", P)
-        print("p2 =", p2)
-        Qx, Qy, Qz = self.get_vector_angle(P, p2)
-        print("Qx =", Qx, "Qy =", Qy, "Qz =", Qz)
         dx, dy, dz = P
+        A = (*A, 1)
+
+        # Translada o eixo A para a origem
         T = self.get_translation_matrix(-dx, -dy, -dz)
-        Rx = self.get_X_rotation_matrix(Qx)
+        A = np.dot(A, T)
+
+        # Rotaciona o vetor A no eixo x para ele ficar sobre o plano xy
+        Qx = np.degrees(np.arctan2(A[2], A[0]))
+        Rx = self.get_X_rotation_matrix(-Qx)
+        A = np.dot(A, Rx)
+
+        # Rotaciona o vetor A no eixo z para ele se alinhar ao eixo y
+        Qz = np.degrees(np.arctan2(A[0], A[1]))
         Rz = self.get_Z_rotation_matrix(Qz)
-        temp_matrix = np.matmul(T, Rx)
-        temp_matrix = np.matmul(temp_matrix, Rz)
-        # rotation itself
+
+        # Faz a rotação principal ao redor do eixo y
         Ry = self.get_Y_rotation_matrix(angle)
-        temp_matrix = np.matmul(temp_matrix, Ry)
-        # undoing auxiliary transformations
-        Rx_reverse = self.get_X_rotation_matrix(-Qx)
+
+        # Reverte as transformações auxiliares
         Rz_reverse = self.get_Z_rotation_matrix(-Qz)
+        Rx_reverse = self.get_X_rotation_matrix(-Qx)
         T_reverse = self.get_translation_matrix(dx, dy, dz)
-        temp_matrix = np.matmul(temp_matrix, Rz_reverse)
-        temp_matrix = np.matmul(temp_matrix, Rx_reverse)
-        temp_matrix = np.matmul(temp_matrix, T_reverse)
-        return temp_matrix
-    
-    
+
+        return T @ Rx @ Rz @ Ry @ Rz_reverse @ Rx_reverse @ T_reverse
+
     @property
     def name(self) -> str:
         return self.__name
