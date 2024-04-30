@@ -14,7 +14,6 @@ class Transformator:
         self.__center = np.array([width / 2, height / 2, 0, 1])
         self.__scaling_factor = 1
 
-
         self.__SCN_matrix = None
         self.obj = Objeto3D("generic_obj", [(0,0,0)], ObjectType.POINT)
         # view up vector
@@ -28,17 +27,17 @@ class Transformator:
 
         theta = self.__viewup_angle
 
-        #print("theta:", theta, "rad of:", angle, "degrees")
         dx = self.__center[0]
         dy = self.__center[1]
         sx = 2 * self.__scaling_factor / (self.__xwmax - self.__xwmin)
         sy = 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin)
+
         T = self.__get_translate_matrix(-dx, -dy)
         Qx, Qy, _ = self.obj.get_vector_angle((dx, dy, 0), tuple(self.__vpn))
         Rx = self.obj.get_X_rotation_matrix(-Qx)
         Ry = self.obj.get_Y_rotation_matrix(-Qy)
         R = self.__get_rotate_matrix(theta)
-        S = self.__get_scale_matrix(sx, sy)        
+        S = self.__get_scale_matrix(sx, sy)
         rotate_matrix = np.matmul(np.matmul(T, Rx), Ry)
         self.__SCN_matrix = np.matmul(np.matmul(rotate_matrix, R), S)
 
@@ -62,27 +61,28 @@ class Transformator:
 
     def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
         return self.obj.get_translation_matrix(dx, dy)
-    
+
     def __get_scale_matrix(self, sx: float, sy: float) -> np.array:
         return self.obj.get_scaling_matrix(sx, sy)
 
     @property
     def matrix(self) -> np.array:
         return self.__SCN_matrix
-    
+
     @property
     def scaling_factor(self) -> float:
         return self.__scaling_factor
-    
+
     @scaling_factor.setter
     def scaling_factor(self, value: float):
         self.__scaling_factor = value
-    
+
     @property
     def center(self) -> np.array:
         return self.__center
-    
+
     def update_center(self, dx:float, dy:float):
         changed_x, changed_y = self.unrotate_vector(dx, dy)
         translate_matrix = self.__get_translate_matrix(changed_x, changed_y)
         self.__center = np.dot(self.__center, translate_matrix)
+        self.__vpn = np.array([self.__center[0], self.__center[1], 1])
