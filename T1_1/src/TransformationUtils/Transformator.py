@@ -23,9 +23,9 @@ class Transformator:
         self.set_normalization_matrix(0)
 
     def set_normalization_matrix(self, angle: float = 0):
-        self.__update_view_up_vector(np.radians(angle))
+        self.__update_view_up_vector(angle)
 
-        theta = self.__viewup_angle
+        theta = np.degrees(self.__viewup_angle)
 
         dx = self.__center[0]
         dy = self.__center[1]
@@ -41,7 +41,7 @@ class Transformator:
         rotate_matrix = np.matmul(np.matmul(T, Rx), Ry)
         self.__SCN_matrix = np.matmul(np.matmul(rotate_matrix, R), S)
 
-    def __update_view_up_vector(self, theta: np.ndarray):
+    def __update_view_up_vector(self, theta: float):
         rotate_matrix = self.__get_rotate_matrix(theta)
         self.__viewup = np.matmul(self.__viewup, rotate_matrix)
 
