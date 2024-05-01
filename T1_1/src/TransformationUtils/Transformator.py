@@ -25,7 +25,7 @@ class Transformator:
     def set_normalization_matrix(self, angle: float = 0):
         self.__update_view_up_vector(angle)
 
-        theta = np.degrees(self.__viewup_angle)
+        theta = self.__viewup_angle
 
         dx = self.__center[0]
         dy = self.__center[1]
@@ -48,10 +48,10 @@ class Transformator:
         # The arctan2 function gives the angle that the vector makes with the positive x-axis.
         # To get the angle made with the positive y-axis, we subtract the result from pi/2.
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
-        self.__viewup_angle = -1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0]))
+        self.__viewup_angle = np.degrees(-1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0])))
 
     def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float]:
-        old_vector = np.array([dx, dy, dz, 0])
+        old_vector = np.array([dx, dy, dz, 1])
         rotate_matrix = self.__get_rotate_matrix(-self.__viewup_angle)
         new_vector = np.dot(old_vector, rotate_matrix)
         return new_vector[0], new_vector[1]
