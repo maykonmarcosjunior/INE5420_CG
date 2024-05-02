@@ -31,9 +31,10 @@ class Clipper:
             return []
 
 
-    def clip_polygon(self, coords: list[tuple[float]]) -> list[tuple[float]]:
+    def clip_polygon(self, coords: list[tuple[float]],
+                     edges:list[tuple[int]]) -> list[tuple[float]]:
         if self.__clipping_algorithm_polygon == "S-H":
-            return self.sutherland_hodgman(coords)
+            return self.sutherland_hodgman(coords, edges)
         else:
             print("Invalid clipping algorithm")
             return []
@@ -83,6 +84,20 @@ class Clipper:
         return (x1 - x0) * (y - y0) > (y1 - y0) * (x - x0)
 
 
+    def __project_to_window_edge(self, point, edge):
+        x1, y1 = point
+        ex1, ey1 = edge[0]
+        ex2, ey2 = edge[1]
+
+        ex1, ex2 = min(edge[0][0], edge[1][0]), max(edge[0][0], edge[1][0])
+        ey1, ey2 = min(edge[0][1], edge[1][1]), max(edge[0][1], edge[1][1])
+
+        y_proj = min(max(y1, ey1), ey2)
+        x_proj = min(max(x1, ex1), ex2)
+        return x_proj, y_proj
+
+
+
     # Função para calcular a interseção de uma aresta 'edge' com a linha formada por 'p1' e 'p2'
     def __compute_intersection(self, p1, p2, edge):
         # Usando o método de determinantes para encontrar o ponto de interseção
@@ -92,7 +107,12 @@ class Clipper:
         x4, y4 = edge[1]
 
 
-        den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        dx_p = x1 - x2
+        dy_p = y1 - y2
+        dx_e = x3 - x4
+        dy_e = y3 - y4
+
+        den = dx_p * dy_e - dy_p * dx_e
         # Se o determinante for zero, significa que as linhas são paralelas ou coincidentes.
         if den == 0:
             return None
@@ -101,33 +121,23 @@ class Clipper:
             Se as linhas não forem paralelas, é possível calcular o ponto de interseção.
             A fórmula para calcular o ponto de interseção é derivada de um sistema de equações lineares.
             O ponto de interseção é calculado usando a fórmula:
-                (x1 + t * (x2 - x1), y1 + t * (y2 - y1)),
+                x = x1 + t * (x2 - x1),
+                y = y1 + t * (y2 - y1),
             onde 't' é um parâmetro que determina a posição
             do ponto de interseção ao longo da linha formada
             por 'p1' e 'p2'.
         """
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
-        x = x1 + t * (x2 - x1)
-        y = y1 + t * (y2 - y1)
+        t = ((x1 - x3) * dy_e - (y1 - y3) * dx_e) / den
+        x = x1 - dx_p * t
+        y = y1 - dy_p * t
         return x, y
 
 
-    def __compute_outcode(self, x: float, y: float) -> int:
-        code = 0
-        if x < self.__Xw_min:
-            code |= 1
-        elif x > self.__Xw_max:
-            code |= 2
-        if y < self.__Yw_min:
-            code |= 4
-        elif y > self.__Yw_max:
-            code |= 8
-        return code
-
-
-    def sutherland_hodgman(self, polygon: list[tuple[float]]) -> list[tuple[float]]:
-        # Cria uma cópia do polígono original para modificar
+    def sutherland_hodgman(self, polygon: list[tuple[float]],
+                           edges:list[tuple[int]]) -> list[tuple[float]]:
+        # Cria uma cópia do polígono e das arestas originais para modificar
         clipped_polygon = polygon[:]
+        clipped_edges = edges[:]
         
         window_points = [
                     (self.__Xw_min, self.__Yw_min),
@@ -135,28 +145,53 @@ class Clipper:
                     (self.__Xw_max, self.__Yw_max),
                     (self.__Xw_min, self.__Yw_max)
                   ]
+        # divide a window em arestas
         window = [(window_points[i], window_points[(i + 1) % 4]) for i in range(4)]
 
         for edge in window:
             new_polygon = []
+            new_edges = []
             if not clipped_polygon:
                 break
-            prev_point = clipped_polygon[-1]
-
-            for point in clipped_polygon:
+            
+            for p_edge in clipped_edges:
+                prev_point = clipped_polygon[p_edge[0]]
+                point = clipped_polygon[p_edge[1]]
                 if self.__inside(point, edge):
                     if not self.__inside(prev_point, edge):
-                        intersection = self.__compute_intersection(prev_point, point, edge)
-                        if intersection:
-                            new_polygon.append(intersection)
-                    new_polygon.append(point)
+                        prev_point = self.__compute_intersection(prev_point, point, edge)
+                    if prev_point:
+                        new_polygon.append(prev_point)
+                        new_polygon.append(point)
+                        L = len(new_polygon)
+                        new_edges.append((L - 2, L - 1))
+                    else:
+                        print("Error: intersection not found", prev_point, point)
                 elif self.__inside(prev_point, edge):
-                    intersection = self.__compute_intersection(prev_point, point, edge)
-                    if intersection:
-                        new_polygon.append(intersection)
-                prev_point = point
+                    point = self.__compute_intersection(prev_point, point, edge)
+                    if point:
+                        new_polygon.append(prev_point)
+                        new_polygon.append(point)
+                        L = len(new_polygon)
+                        new_edges.append((L - 2, L - 1))
+                    else:
+                        print("Error: intersection not found", prev_point, point)
+                else:
+                    prev_point = self.__project_to_window_edge(prev_point, edge)
+                    point = self.__project_to_window_edge(point, edge)
+                    new_polygon.append(prev_point)
+                    new_polygon.append(point)
+                    L = len(new_polygon)
+                    new_edges.append((L - 2, L - 1))
 
             clipped_polygon = new_polygon
+            clipped_edges = new_edges
+        x_ses = [x for x, _ in clipped_polygon]
+        y_ses = [y for _, y in clipped_polygon]
+        c_x = min(x_ses) >= self.__Xw_max or max(x_ses) <= self.__Xw_min
+        c_y = min(y_ses) >= self.__Yw_max or max(y_ses) <= self.__Yw_min
+        if c_x or c_y:
+            return []
         return clipped_polygon
 
     def liang_barsky(self, coords: list[tuple[float]]) -> list[tuple[float]]:
@@ -190,6 +225,20 @@ class Clipper:
                              ]
         return clipped_coords
     
+
+    def __compute_outcode(self, x: float, y: float) -> int:
+        code = 0
+        if x < self.__Xw_min:
+            code |= 1
+        elif x > self.__Xw_max:
+            code |= 2
+        if y < self.__Yw_min:
+            code |= 4
+        elif y > self.__Yw_max:
+            code |= 8
+        return code
+
+
     def cohen_sutherland(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         p1, p2 = coords
 

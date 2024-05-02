@@ -15,10 +15,18 @@ class ObjectType(Enum):
 
 class Objeto3D(ABC):
     def __init__(self, name: str, coords: list[tuple[float]],
-                 obj_type=ObjectType.OBJECT3D, color="#000000"):
-        self.__name, self.__coords, self.__obj_type = self.certify_format(name, coords, obj_type)
+                 obj_type=ObjectType.OBJECT3D, color="#000000",
+                 edges:list[tuple[int]] = []):
+        self.__name = None
+        self.__coords = None
+        self.__obj_type = None
+        self.certify_format(name, coords, obj_type)
         self.__color = color
-
+        self.__edges = edges
+        if not self.__edges:
+            L = len(self.__coords)
+            self.__edges = [(i, (i+1)%L) for i in range(L)]
+    
     def translation(self, dx: float, dy: float, dz: float=0) -> None:
         matrix = self.get_translation_matrix(dx, dy, dz)
         self.__coords = self.calculate_coords(matrix, convert=False)
@@ -138,10 +146,6 @@ class Objeto3D(ABC):
         dx = x2 - x1
         dy = y2 - y1
         dz = z2 - z1
-        Qx = np.rad2deg(np.arctan2(dy, dx))
-        Qy = np.rad2deg(np.arctan2(dx, dy))
-        Qz = np.rad2deg(np.arctan2(dx, dz))
-        ######
         Qx = np.rad2deg(np.arctan2(dx, np.sqrt(dy**2 + dz**2)))
         Qy = np.rad2deg(np.arctan2(dy, np.sqrt(dx**2 + dz**2))) 
         Qz = np.rad2deg(np.arctan2(np.sqrt(dy**2 + dx**2), dz))
@@ -190,6 +194,11 @@ class Objeto3D(ABC):
 
 
     @property
+    def edges(self) -> list[tuple[int]]:
+        return self.__edges
+
+    
+    @property
     def obj_type(self) -> str:
         return self.__obj_type
 
@@ -220,8 +229,9 @@ class Objeto3D(ABC):
         return R
 
     
-    def certify_format(self, name:str, coords:list[tuple[float]],
+    def certify_format(self, name:str, coords_:list[tuple[float]],
                        obj_type:str) -> tuple[str, np.array, ObjectType]:
+        coords = coords_[:]
         if not isinstance(name, str):
             print("Invalid name for", name, ", renamed to 'obj'")
             name = 'obj'
@@ -263,7 +273,7 @@ class Objeto3D(ABC):
             coords = [tuple(i) for i in coords]
         if any(len(i) < 3 for i in coords):
             print("Invalid format for coordinates, 3 values are needed for each point")
-            print("points with less than 3 values will be remanaged to (0,0,0)")
+            print("points with less than 3 values will be added a 0")
             for i in range(len(coords)):
                 if len(coords[i]) < 3:
                     coords[i] = (*coords[i], 0.0)
@@ -280,5 +290,6 @@ class Objeto3D(ABC):
                 print("Invalid format for coordinates, the tuples should be made of floats")
                 print("coordinates will be remanaged to (i, i, i)")
                 coords = [(i, i, i) for i in range(len(coords))]
-        output_coords = np.array(coords)
-        return name, output_coords, obj_type
+        self.__name = name
+        self.__coords = np.array(coords)
+        self.__obj_type = obj_type

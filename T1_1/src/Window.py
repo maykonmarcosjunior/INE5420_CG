@@ -39,7 +39,7 @@ class Window:
         elif object.obj_type == Obj3D.ObjectType.LINE:
             self.draw_line(obj_coords, object.color)
         elif object.obj_type == Obj3D.ObjectType.WIREFRAME:
-            self.draw_wireframe(obj_coords, object.color, object.fill)
+            self.draw_wireframe(obj_coords, object.edges, object.color, object.fill)
         elif object.obj_type in [Obj3D.ObjectType.BEZIER_CURVE, Obj3D.ObjectType.BSPLINE_CURVE]:
             self.draw_curve(object.generate_curve(obj_coords), object.color)
 
@@ -52,8 +52,10 @@ class Window:
         self.__viewport.draw_line(self.__clipper.clip_line(coords),
                                   color, self.__width_drawings)
 
-    def draw_wireframe(self, coords: list[tuple[float]], color: str, fill=False) -> None:
-        self.__viewport.draw_polygon(self.__clipper.clip_polygon(coords),
+    def draw_wireframe(self, coords: list[tuple[float]],
+                       edges:list[tuple[int]],
+                       color: str, fill=False) -> None:
+        self.__viewport.draw_polygon(self.__clipper.clip_polygon(coords, edges),
                                      color, self.__width_drawings, fill)
 
     def draw_curve(self, coords: list[tuple[float]], color: str) -> None:
