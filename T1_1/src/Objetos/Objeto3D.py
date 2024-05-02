@@ -161,7 +161,7 @@ class Objeto3D(ABC):
 
         # Rotaciona o vetor A no eixo x para ele ficar sobre o plano xy
         Qx = np.degrees(np.arctan2(A[2], A[0]))
-        Rx = self.get_X_rotation_matrix(-Qx)
+        Rx = self.get_X_rotation_matrix(Qx)
         A = np.dot(A, Rx)
 
         # Rotaciona o vetor A no eixo z para ele se alinhar ao eixo y
@@ -250,7 +250,8 @@ class Objeto3D(ABC):
                                                 ObjectType.BSPLINE_CURVE]:
             print("Wrong object type")
             obj_type = ObjectType.WIREFRAME
-        if (obj_type == ObjectType.BEZIER_CURVE or obj_type == ObjectType.BSPLINE_CURVE) and len(coords) < 4:
+        if (obj_type == ObjectType.BEZIER_CURVE
+            or obj_type == ObjectType.BSPLINE_CURVE) and len(coords) < 4:
             added_points = [(randint(-1000, 1000),
                              randint(-1000, 1000),
                              randint(-1000, 1000)) for _ in range(4 - len(coords))]
@@ -265,7 +266,7 @@ class Objeto3D(ABC):
             print("points with less than 3 values will be remanaged to (0,0,0)")
             for i in range(len(coords)):
                 if len(coords[i]) < 3:
-                    coords[i] = (0, 0, 0)
+                    coords[i] = (*coords[i], 0.0)
         if any(len(i) > 3 for i in coords):
             print(
                 "Invalid format for coordinates, only 3 values are needed for each point"

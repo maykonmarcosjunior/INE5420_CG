@@ -21,7 +21,7 @@ class DrawWindow(tk.Toplevel):
         frame_obj_type.pack(pady=10)
 
         tk.Label(frame_obj_type, text="Object Type: ").pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Objeto 2D", variable=self.__object_type_var,
+        tk.Radiobutton(frame_obj_type, text="Objeto 3D", variable=self.__object_type_var,
                        value=ObjectType.OBJECT3D.value).pack(side=tk.LEFT)
         tk.Radiobutton(frame_obj_type, text="Curva de Bézier", variable=self.__object_type_var,
                        value=ObjectType.BEZIER_CURVE.value).pack(side=tk.LEFT)

@@ -3,10 +3,9 @@ from tkinter import messagebox
 import ast
 
 import src.Window as WW
-from src.Objetos import Objeto2D as Obj2D
 from src.Objetos import Objeto3D as Obj3D
-from src.Objetos import Ponto2D as P2D
-from src.Objetos import Linha2D as L2D
+from src.Objetos import Ponto3D as P3D
+from src.Objetos import Linha3D as L3D
 from src.Objetos import WireFrame as WF
 from src.Objetos import CurvaBezier as BC
 from src.Objetos import CurvaBSpline as BSC
@@ -124,9 +123,9 @@ class App:
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
             output = BSC.CurvaBSpline(name, coords, color=color)
         elif len(coords) == 1:
-            output = P2D.Ponto2D(name, coords, color=color)
+            output = P3D.Ponto3D(name, coords, color=color)
         elif len(coords) == 2:
-            output = L2D.Linha2D(name, coords, color=color)
+            output = L3D.Linha3D(name, coords, color=color)
         else:
             output = WF.WireFrame(name, coords, color=color, fill=fill)
 

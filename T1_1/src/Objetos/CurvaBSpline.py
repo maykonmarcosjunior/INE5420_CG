@@ -1,13 +1,12 @@
-from src.Objetos.Objeto2D import Objeto2D
 from src.Objetos.Objeto3D import Objeto3D, ObjectType
 import numpy as np
 
 
-class CurvaBSpline(Objeto2D):
+class CurvaBSpline(Objeto3D):
     def __init__(
         self,
         name,
-        coordenadas=[(0, 0), (1, 1)],
+        coordenadas=[(0, 0, 0), (1, 1, 1)],
         obj_type=ObjectType.BSPLINE_CURVE,
         color="#000000",
     ):

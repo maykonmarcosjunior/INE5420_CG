@@ -14,7 +14,7 @@ class Transformator:
         self.__center = np.array([width / 2, height / 2, 0, 1])
         self.__scaling_factor = 1
 
-        self.__SCN_matrix = None
+        self._normal_matrix = None
         self.obj = Objeto3D("generic_obj", [(0,0,0)], ObjectType.POINT)
         # view up vector
         self.__viewup = np.array([0, 1, 0, 1])
@@ -39,7 +39,7 @@ class Transformator:
         R = self.__get_rotate_matrix(theta)
         S = self.__get_scale_matrix(sx, sy)
         rotate_matrix = np.matmul(np.matmul(T, Rx), Ry)
-        self.__SCN_matrix = np.matmul(np.matmul(rotate_matrix, R), S)
+        self._normal_matrix = np.matmul(np.matmul(rotate_matrix, R), S)
 
     def __update_view_up_vector(self, theta: float):
         rotate_matrix = self.__get_rotate_matrix(theta)
@@ -67,7 +67,7 @@ class Transformator:
 
     @property
     def matrix(self) -> np.array:
-        return self.__SCN_matrix
+        return self._normal_matrix
 
     @property
     def scaling_factor(self) -> float:
