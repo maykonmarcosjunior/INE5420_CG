@@ -117,7 +117,7 @@ class App:
             print("Error in get_object: ", e)
 
     def __create_object(self, name, coords, color, fill=False,
-                        obj_type: int=Obj3D.ObjectType.OBJECT3D) -> Obj3D:
+                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value, edges:list[list[float]]=[]) -> Obj3D:
         if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
@@ -127,7 +127,7 @@ class App:
         elif len(coords) == 2:
             output = L3D.Linha3D(name, coords, color=color)
         else:
-            output = WF.WireFrame(name, coords, color=color, fill=fill)
+            output = WF.WireFrame(name, coords, color=color, fill=fill, edges=edges)
 
         return output
 
@@ -151,7 +151,7 @@ class App:
         for obj in self.__display_file.objects:
             self.__window.draw_object(obj)
         self.__window.draw_viewport_outer_frame()
-            
+
     def __apply_transformations(self, object_index: int, transformations: list):
         obj = self.__display_file.objects[object_index]
         obj.apply_transformations(transformations=transformations,
@@ -165,16 +165,6 @@ class App:
     def __pan_window(self, dx: float, dy: int):
         self.__window.pan(dx, dy)
         self.__draw_all_objects()
-    
-    '''
-    def __pan_window(self, axis: str, amount: int):
-        if axis == 'x':
-            self.__window.pan_x(amount)
-        elif axis == 'y':
-            self.__window.pan_y(amount)
-        self.__window.set_normalization_matrix()
-        self.__draw_all_objects()
-    '''
 
     def __zoom_window(self, zoom_type: str):
         if zoom_type == 'in':
@@ -200,21 +190,21 @@ class App:
 
         # Convert the list of lists of 3D coordinates in a list of tuples of 2D coordinates
         for value in objects.values():
-            value["coordinates"] = [
-                (coord[0], coord[1]) for coord in value["coordinates"]
-                ]
-
+            value["coordinates"] = [tuple(coord) for coord in value["coordinates"]]
+        
         for name, value in objects.items():
-            self.__display_file.add_object(self.__create_object(name,
-                                                                value["coordinates"],
-                                                                value["color"])
+            edges = value["edges"] if value["type"] == "faced_obj" else []
+            self.__display_file.add_object(self.__create_object(name=name,
+                                                                coords=value["coordinates"],
+                                                                color=value["color"], 
+                                                                edges=edges)
                                           )
 
         self.__draw_all_objects()
 
     def __generate_obj(self) -> None:
         OBJG(self.__display_file.objects)
-    
+
     # works for both the line and polygon algorithm
     def __set_clipping_algorithm(self, algorithm: str="C-S") -> None:
         self.__window.set_clipping_algorithm(algorithm)

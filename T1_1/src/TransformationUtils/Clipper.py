@@ -32,13 +32,12 @@ class Clipper:
 
 
     def clip_polygon(self, coords: list[tuple[float]],
-                     edges:list[tuple[int]]) -> list[tuple[float]]:
+                     edges:list[tuple[int]]) -> tuple[list[tuple[float]]]:
         if self.__clipping_algorithm_polygon == "S-H":
             return self.sutherland_hodgman(coords, edges)
-        else:
-            print("Invalid clipping algorithm")
-            return []
 
+        print("Invalid clipping algorithm")
+        return [], []
 
     def clip_curve(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         # Clipped coords is a list of lists, where each nested list represents a piece of the curve
@@ -134,11 +133,11 @@ class Clipper:
 
 
     def sutherland_hodgman(self, polygon: list[tuple[float]],
-                           edges:list[tuple[int]]) -> list[tuple[float]]:
+                           edges:list[tuple[int]]) -> tuple[list[tuple[float]]]:
         # Cria uma cópia do polígono e das arestas originais para modificar
         clipped_polygon = polygon[:]
         clipped_edges = edges[:]
-        
+
         window_points = [
                     (self.__Xw_min, self.__Yw_min),
                     (self.__Xw_max, self.__Yw_min),
@@ -153,7 +152,7 @@ class Clipper:
             new_edges = []
             if not clipped_polygon:
                 break
-            
+
             for p_edge in clipped_edges:
                 prev_point = clipped_polygon[p_edge[0]]
                 point = clipped_polygon[p_edge[1]]
@@ -191,8 +190,8 @@ class Clipper:
         c_x = min(x_ses) >= self.__Xw_max or max(x_ses) <= self.__Xw_min
         c_y = min(y_ses) >= self.__Yw_max or max(y_ses) <= self.__Yw_min
         if c_x or c_y:
-            return []
-        return clipped_polygon
+            return [], []
+        return clipped_polygon, clipped_edges
 
     def liang_barsky(self, coords: list[tuple[float]]) -> list[tuple[float]]:
         clipped_coords = []

@@ -77,11 +77,17 @@ class OBJParser:
                 obj_name, n_elements_in_group = self.__get_object_name(
                     current_group_name, n_elements_in_group, current_object_name
                 )
-                self.__create_line_or_wireframe(
+                if (
+                    current_object_name is not None
+                    and current_object_name not in self.__objects
+                ):
+                    obj_name = current_object_name
+                else:
+                    obj_name = current_group_name
+                self.__add_face_to_current_group(
                     str_vertices=elements[1:],
                     current_color=current_color,
                     current_name=obj_name,
-                    is_f=True,
                 )
 
     @property
@@ -123,7 +129,6 @@ class OBJParser:
         str_vertices: str,
         current_color: str,
         current_name: str,
-        is_f: bool = False,
     ) -> None:
 
         vertices_numbers = [
@@ -133,15 +138,64 @@ class OBJParser:
         obj_type = "line" if len(obj_vertices) == 2 else "wireframe"
 
         # Se for wireframe, a 1 coordenada é igual a última
-        if obj_type == "wireframe" and not is_f:
+        if obj_type == "wireframe":
             obj_vertices.pop()
 
+        obj = {"type": obj_type, "color": current_color, "coordinates": obj_vertices}
+
+        self.__objects[current_name] = obj
+
+    def __add_face_to_current_group(
+        self, str_vertices: str, current_color: str, current_name: str
+    ) -> None:
+
+        vertices_numbers = [
+            int(k) - 1 if "-" not in k else int(k) for k in str_vertices
+        ]
+
+        obj_vertices = [tuple(self.__vertices[i]) for i in vertices_numbers]
+
+        if current_name in self.__objects:
+            vertices_not_already_in = list(
+                set(obj_vertices).difference(
+                    set(self.__objects[current_name]["coordinates"])
+                )
+            )
+            self.__objects[current_name]["coordinates"].extend(vertices_not_already_in)
+            current_vertices = self.__objects[current_name]["coordinates"]
+
+            obj_edges = self.__get_edges_with_current_index_list(current_vertices, vertices_numbers)
+            self.__objects[current_name]["edges"].extend(obj_edges)
+            return
+
+        current_vertices = obj_vertices
+        obj_edges = self.__get_edges_with_current_index_list(obj_vertices, vertices_numbers)
+
         obj = {
-            "type": obj_type,
+            "type": "faced_obj",
             "color": current_color,
             "coordinates": obj_vertices,
+            "edges": obj_edges,
         }
         self.__objects[current_name] = obj
+
+    def __get_edges_with_current_index_list(self, current_vertices_list: list[tuple[float]], out_of_date_indexes: list[int]) -> list:
+        vertex_map = {vertex: index for index, vertex in enumerate(current_vertices_list)}
+
+        obj_edges = [
+            (
+                vertex_map[tuple(self.__vertices[out_of_date_indexes[i]])],
+                vertex_map[tuple(self.__vertices[out_of_date_indexes[i + 1]])]
+            )
+            for i in range(len(out_of_date_indexes) - 1)
+        ]
+        obj_edges.append(
+            (
+                vertex_map[tuple(self.__vertices[out_of_date_indexes[-1]])],
+                vertex_map[tuple(self.__vertices[out_of_date_indexes[0]])]
+            )
+        )
+        return obj_edges
 
     def __get_hex_from_rgb(self, rgb: list[float]) -> str:
         rgb_tuple = tuple(int(x * 255) for x in rgb)
@@ -221,8 +275,6 @@ class OBJGenerator:
                 case ObjectType.WIREFRAME:
                     indexes = self.__get_vertices_indexes(objeto.coordinates)
                     lines.append(f"l {' '.join(indexes)}\n")
-                case ObjectType.BEZIER_CURVE:
-                    pass # TODO
 
         self.__write_to_files(
             file_name, mtl_file_name, self.__vertices, lines, mtl_elements

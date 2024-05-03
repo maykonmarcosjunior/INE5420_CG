@@ -44,12 +44,16 @@ class ViewPort:
         self.__canvas.create_line(x0, y0, x1, y1, fill=color, width=width)
 
 
-    def draw_polygon(self, points: list[tuple[float]], color: str, width:float, fill = False) -> None:
+    def draw_polygon(self, points: list[tuple[float]], edges: list[tuple[int]], color: str, width:float, fill=False) -> None:
         if points == []:
             return
         points = [self.viewport_transform(*point) for point in points]
-        bg = color if fill else ""
-        self.__canvas.create_polygon(points, fill=bg, outline=color, width=width)
+        if fill:
+            self.__canvas.create_polygon(points, fill=color, outline=color, width=width)
+            return
+
+        for start_p, end_p in edges:
+            self.__canvas.create_line(*points[start_p], *points[end_p], fill=color, width=width)
 
 
     def draw_curve(self, sub_curves: list[tuple[float]], color: str, width: float) -> None:

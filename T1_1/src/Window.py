@@ -55,7 +55,7 @@ class Window:
     def draw_wireframe(self, coords: list[tuple[float]],
                        edges:list[tuple[int]],
                        color: str, fill=False) -> None:
-        self.__viewport.draw_polygon(self.__clipper.clip_polygon(coords, edges),
+        self.__viewport.draw_polygon(*self.__clipper.clip_polygon(coords, edges),
                                      color, self.__width_drawings, fill)
 
     def draw_curve(self, coords: list[tuple[float]], color: str) -> None:
