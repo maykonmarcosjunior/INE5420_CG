@@ -23,10 +23,12 @@ class Objeto3D(ABC):
         self.certify_format(name, coords, obj_type)
         self.__color = color
         self.__edges = edges
+        self.__edge_order_matter = True
         if not self.__edges:
+            self.__edge_order_matter = False
             L = len(self.__coords)
             self.__edges = [(i, (i+1)%L) for i in range(L)]
-    
+
     def translation(self, dx: float, dy: float, dz: float=0) -> None:
         matrix = self.get_translation_matrix(dx, dy, dz)
         self.__coords = self.calculate_coords(matrix, convert=False)
@@ -41,7 +43,6 @@ class Objeto3D(ABC):
                                    self.get_translation_matrix(cx, cy, cz))
 
         self.__coords = self.calculate_coords(scaling_matrix, convert=False)
-
 
     def rotation(self,
                  rotation_type: str="RotationType.Z",
@@ -151,7 +152,6 @@ class Objeto3D(ABC):
         Qz = np.rad2deg(np.arctan2(np.sqrt(dy**2 + dx**2), dz))
         return Qx, Qy, Qz
 
-
     def __aux_rotation(self,
                        P:tuple[float, float, float],
                        A:tuple[float, float, float],
@@ -186,36 +186,33 @@ class Objeto3D(ABC):
     def name(self) -> str:
         return self.__name
 
-
     @property
     def coordinates(self) -> list[tuple[float]]:
         coords = self.__convert_to_tuples_list(self.__coords)
         return coords
 
-
     @property
     def edges(self) -> list[tuple[int]]:
         return self.__edges
 
-    
     @property
     def obj_type(self) -> str:
         return self.__obj_type
 
-
     @property
     def color(self) -> str:
         return self.__color
-
+    
+    @property
+    def edge_order_matter(self) -> bool:
+        return self.__edge_order_matter
 
     def __str__(self):
         coords = [tuple(round(i, 2) for i in j) for j in self.coordinates]
         return f"{self.obj_type}: - {self.__name} - {coords}"
 
-
     def __convert_to_tuples_list(self, coords: np.ndarray) -> list[tuple[float]]:
         return [tuple(float(j) for j in i) for i in coords.tolist()]
-
 
     def calculate_coords(self, matrix: np.ndarray, convert=True) -> list[tuple[float]]:
         R = np.array(
@@ -228,7 +225,6 @@ class Objeto3D(ABC):
             R = [(i[0], i[1]) for i in self.__convert_to_tuples_list(R)]
         return R
 
-    
     def certify_format(self, name:str, coords_:list[tuple[float]],
                        obj_type:str) -> tuple[str, np.array, ObjectType]:
         coords = coords_[:]

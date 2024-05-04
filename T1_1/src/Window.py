@@ -1,5 +1,5 @@
 import tkinter as tk
-# import numpy as np
+
 
 import src.ViewPort as VP
 from src.Objetos import Objeto3D as Obj3D

@@ -32,7 +32,6 @@ class OBJParser:
 
         current_object_name = None
         current_group_name = "default_group"
-        n_elements_in_group = 0
         current_color = "#000000"
 
         for line in lines:
@@ -49,18 +48,14 @@ class OBJParser:
                 if len(elements) > 1:
                     current_group_name = elements[1]
             elif elements[0] == "p":  # Definição de um ponto com base em um vertice
-                obj_name, n_elements_in_group = self.__get_object_name(
-                    current_group_name, n_elements_in_group, current_object_name
-                )
+                obj_name = self.__get_object_name(current_group_name, current_object_name)
                 self.__create_point(
                     v_number_str=elements[1],
                     current_color=current_color,
                     current_name=obj_name,
                 )
             elif elements[0] == "l":  # Definição de uma linha ou um wireframe
-                obj_name, n_elements_in_group = self.__get_object_name(
-                    current_group_name, n_elements_in_group, current_object_name
-                )
+                obj_name = self.__get_object_name(current_group_name, current_object_name)
                 self.__create_line_or_wireframe(
                     str_vertices=elements[1:],
                     current_color=current_color,
@@ -73,17 +68,9 @@ class OBJParser:
                 current_color = self.__mtl_elements[elements[1]]
             elif (
                 elements[0] == "f"
-            ):  # Por enquanto vai fazer a mesma coisa que a letra l
-                obj_name, n_elements_in_group = self.__get_object_name(
-                    current_group_name, n_elements_in_group, current_object_name
-                )
-                if (
-                    current_object_name is not None
-                    and current_object_name not in self.__objects
-                ):
-                    obj_name = current_object_name
-                else:
-                    obj_name = current_group_name
+            ):
+                obj_name = self.__get_object_name(current_group_name, current_object_name)
+
                 self.__add_face_to_current_group(
                     str_vertices=elements[1:],
                     current_color=current_color,
@@ -94,21 +81,13 @@ class OBJParser:
     def objects(self) -> dict:
         return self.__objects
 
-    def __get_object_name(
-        self,
-        current_group_name: str,
-        current_elements_in_group: int,
-        current_object_name=None,
-    ) -> tuple[str, int]:
+    def __get_object_name(self, current_group_name: str, current_object_name=None) -> str:
         if (
             current_object_name is not None
             and current_object_name not in self.__objects
         ):
-            return current_object_name, current_elements_in_group
-        return (
-            current_group_name + "_" + str(current_elements_in_group),
-            current_elements_in_group + 1,
-        )
+            return current_object_name
+        return current_group_name
 
     def __create_vertex(self, str_coordinates: str) -> None:
         self.__vertices.append([float(k) for k in str_coordinates])
@@ -273,8 +252,17 @@ class OBJGenerator:
                         f"l {self.__vertices[objeto.coordinates[0]]} {self.__vertices[objeto.coordinates[1]]}\n"
                     )
                 case ObjectType.WIREFRAME:
-                    indexes = self.__get_vertices_indexes(objeto.coordinates)
-                    lines.append(f"l {' '.join(indexes)}\n")
+                    if not objeto.edge_order_matter or len(objeto.edges) % 3 != 0:
+                        indexes = self.__get_vertices_indexes(objeto.coordinates)
+                        lines.append(f"l {' '.join(indexes)}\n")
+                        continue
+
+                    lines[-2] = f"g {objeto.name}\n"
+
+                    edges = objeto.edges
+                    for i in range(0, len(edges), 3):
+                        first, second, third = edges[i][0], edges[i][1], edges[i + 1][1]
+                        lines.append(f"f {first + 1} {second + 1} {third + 1}\n")
 
         self.__write_to_files(
             file_name, mtl_file_name, self.__vertices, lines, mtl_elements
@@ -315,7 +303,7 @@ class OBJGenerator:
         with open(file_name, "w", encoding="utf-8") as f:
             # vertices
             for vertice in vertices:
-                f.write(f"v {vertice[0]:.5f} {vertice[1]:.5f} {0:.5f}\n")
+                f.write(f"v {vertice[0]:.5f} {vertice[1]:.5f} {vertice[2]:.5f}\n")
 
             # mtl file
             if len(lines) > 0:
