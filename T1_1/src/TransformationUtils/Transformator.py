@@ -1,5 +1,6 @@
 import numpy as np
 from src.Objetos.Objeto3D import Objeto3D, ObjectType
+from math import sqrt
 
 class Transformator:
     def __init__(self, system:str="SCN",
@@ -12,6 +13,13 @@ class Transformator:
         self.__ywmax = height
         # middle point of the window
         self.__center = np.array([width / 2, height / 2, 0, 1])
+        self.__dop = width * (sqrt(3) / 2)
+        self.__cop = np.array([width / 2, height / 2, self.__dop, 1])
+        self.__mper = np.array([[1, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 1/self.__dop, 0]]
+)
         self.__scaling_factor = 1
 
         self._normal_matrix = None
@@ -27,19 +35,20 @@ class Transformator:
 
         theta = self.__viewup_angle
 
-        dx = self.__center[0]
-        dy = self.__center[1]
+        dx = self.__cop[0]
+        dy = self.__cop[1]
+        dz = self.__cop[2]
         sx = 2 * self.__scaling_factor / (self.__xwmax - self.__xwmin)
         sy = 2 * self.__scaling_factor / (self.__ywmax - self.__ywmin)
 
-        T = self.__get_translate_matrix(-dx, -dy)
-        Qx, Qy, _ = self.obj.get_vector_angle((dx, dy, 0), tuple(self.__vpn))
+        T = self.__get_translate_matrix(-dx, -dy, -dz)
+        Qx, Qy, _ = self.obj.get_vector_angle((dx, dy, 0), (dx, dy, dz))
         Rx = self.obj.get_X_rotation_matrix(-Qx)
         Ry = self.obj.get_Y_rotation_matrix(-Qy)
         R = self.__get_rotate_matrix(theta)
         S = self.__get_scale_matrix(sx, sy)
-        rotate_matrix = np.matmul(np.matmul(T, Rx), Ry)
-        self._normal_matrix = np.matmul(np.matmul(rotate_matrix, R), S)
+        rotate_matrix = np.matmul(np.matmul(np.matmul(T, Rx), Ry), R)
+        self._normal_matrix = np.matmul(np.matmul(rotate_matrix, self.__mper), S)
 
     def __update_view_up_vector(self, theta: float):
         rotate_matrix = self.__get_rotate_matrix(theta)
@@ -59,11 +68,11 @@ class Transformator:
     def __get_rotate_matrix(self, theta: float) -> np.array:
         return self.obj.get_Z_rotation_matrix(theta)
 
-    def __get_translate_matrix(self, dx: float, dy: float) -> np.array:
-        return self.obj.get_translation_matrix(dx, dy)
+    def __get_translate_matrix(self, dx: float, dy: float, dz:float=0) -> np.array:
+        return self.obj.get_translation_matrix(dx, dy, dz)
 
-    def __get_scale_matrix(self, sx: float, sy: float) -> np.array:
-        return self.obj.get_scaling_matrix(sx, sy)
+    def __get_scale_matrix(self, sx: float, sy: float, sz:float=0) -> np.array:
+        return self.obj.get_scaling_matrix(sx, sy, sz)
 
     @property
     def matrix(self) -> np.array:
@@ -86,3 +95,4 @@ class Transformator:
         translate_matrix = self.__get_translate_matrix(changed_x, changed_y)
         self.__center = np.dot(self.__center, translate_matrix)
         self.__vpn = np.array([self.__center[0], self.__center[1], 1])
+        self.__cop = np.array([self.__center[0], self.__center[1], self.__dop, 1])

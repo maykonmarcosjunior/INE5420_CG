@@ -1,6 +1,7 @@
 all:
 	@echo "make run - rodar o projeto"
-	@echo "make clean - remover arquivos temporários"
+	@echo "make clean - remover arquivos temporários e zipar o projeto"
+	@echo "make unclean - desfazer o make clean"
 
 run:
 	@python3 T1_1/main.py

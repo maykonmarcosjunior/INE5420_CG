@@ -105,7 +105,7 @@ class App:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo("Information",
-                            "The object was not created.Name and coordinates are required.")
+                            "The object was not created. Name and coordinates are required.")
                 return
             f_coords = self.__string_to_float_tuple_list(coords)
             output = self.__create_object(name, f_coords, color, fill, obj_type)
@@ -114,7 +114,7 @@ class App:
 
         except Exception as e:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
-            print("Error in get_object: ", e)
+            print("Error in get_object:", e)
 
     def __create_object(self, name, coords, color, fill=False,
                         obj_type: int=Obj3D.ObjectType.OBJECT3D.value, edges:list[list[float]]=[]) -> Obj3D:
@@ -188,7 +188,7 @@ class App:
         parser = OBJP()
         objects = parser.objects
 
-        # Convert the list of lists of 3D coordinates in a list of tuples of 2D coordinates
+        # Convert the list of lists of 3D coordinates in a list of tuples
         for value in objects.values():
             value["coordinates"] = [tuple(coord) for coord in value["coordinates"]]
         
