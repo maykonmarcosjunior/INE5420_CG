@@ -25,7 +25,7 @@ class Window:
         self.__zoom_step = 0.1
         self.__width_drawings = 2
 
-    def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float]:
+    def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float, float]:
         return self.__transformator.unrotate_vector(dx, dy, dz)
     
     def set_normalization_matrix(self, angle: float = 0):

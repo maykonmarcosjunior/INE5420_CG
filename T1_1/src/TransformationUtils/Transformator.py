@@ -61,11 +61,11 @@ class Transformator:
         # The multiplication by -1 is needed to make the rotation counter-clockwise.
         self.__viewup_angle = np.degrees(-1 * (np.pi / 2 - np.arctan2(self.__viewup[1], self.__viewup[0])))
 
-    def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float]:
+    def unrotate_vector(self, dx: float, dy: float, dz:float=0) -> tuple[float, float, float]:
         old_vector = np.array([dx, dy, dz, 1])
         rotate_matrix = self.__get_rotate_matrix(-self.__viewup_angle)
         new_vector = np.dot(old_vector, rotate_matrix)
-        return new_vector[0], new_vector[1]
+        return new_vector[0], new_vector[1], new_vector[2]
 
     def __get_rotate_matrix(self, theta: float) -> np.array:
         return self.obj.get_Z_rotation_matrix(theta)
