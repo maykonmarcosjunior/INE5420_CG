@@ -31,7 +31,7 @@ class Objeto3D(ABC):
 
     def translation(self, dx: float, dy: float, dz: float=0) -> None:
         matrix = self.get_translation_matrix(dx, dy, dz)
-        self.__coords = self.calculate_coords(matrix, convert=False)
+        self.__coords = self.calculate_coords(matrix)
 
     def scaling(self, sx: float, sy: float, sz:float=0) -> None:
         cx, cy, cz = self.geometric_center()
@@ -42,7 +42,7 @@ class Objeto3D(ABC):
         scaling_matrix = np.matmul(temp_matrix,
                                    self.get_translation_matrix(cx, cy, cz))
 
-        self.__coords = self.calculate_coords(scaling_matrix, convert=False)
+        self.__coords = self.calculate_coords(scaling_matrix)
 
     def rotation(self,
                  rotation_type: str="RotationType.Z",
@@ -75,7 +75,7 @@ class Objeto3D(ABC):
             print("Invalid rotation type")
             return
 
-        self.__coords = self.calculate_coords(matrix, convert=False)
+        self.__coords = self.calculate_coords(matrix)
 
     def apply_transformations(self, transformations: list[Transformation],
                               transform_vector_function: callable) -> None:
@@ -214,16 +214,27 @@ class Objeto3D(ABC):
     def __convert_to_tuples_list(self, coords: np.ndarray) -> list[tuple[float]]:
         return [tuple(float(j) for j in i) for i in coords.tolist()]
 
-    def calculate_coords(self, matrix: np.ndarray, convert=True) -> list[tuple[float]]:
+    def calculate_coords(self, matrix: np.ndarray) -> list[tuple[float]]:
         R = np.array(
             [
                 np.dot(np.array([coord[0], coord[1], coord[2], 1]), matrix)[:-1]
                 for coord in self.__coords
             ]
         )
-        if convert:
-            R = [(i[0], i[1]) for i in self.__convert_to_tuples_list(R)]
+
         return R
+
+    def calculate_perspective_normalized_coords(self, d: int, normalize_matrix: np.ndarray):
+        normalized_coords = []
+        for x, y, z in self.__coords:
+            if z < 0:
+                return []
+
+            w = (z + d) / d
+            normalized_coord = np.dot([x / w, y / w, d, 1], normalize_matrix)
+            normalized_coords.append([normalized_coord[0], normalized_coord[1]])
+
+        return normalized_coords
 
     def certify_format(self, name:str, coords_:list[tuple[float]],
                        obj_type:str) -> tuple[str, np.array, ObjectType]:
