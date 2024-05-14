@@ -97,7 +97,7 @@ class Transformator:
         return self.__center
 
     def update_center(self, dx:float, dy:float):
-        changed_x, changed_y = self.unrotate_vector(dx, dy)
+        changed_x, changed_y, _ = self.unrotate_vector(dx, dy)
         translate_matrix = self.__get_translate_matrix(changed_x, changed_y)
         self.__center = np.dot(self.__center, translate_matrix)
         self.__vpn = np.array([self.__center[0], self.__center[1], self.__center[2] + 1])
