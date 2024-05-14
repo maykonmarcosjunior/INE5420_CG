@@ -12,7 +12,7 @@ class Transformator:
         self.__xwmax = width
         self.__ywmax = height
         # middle point of the window
-        self.__dop = round(width * (sqrt(3) / 2) * 1.5)
+        self.__dop = round(width * (sqrt(3) / 2))
         self.__center = np.array([0, 0, self.__dop, 1])
         self.__cop = np.array([0, 0, 0, 1])
         self.__mper = np.array(
