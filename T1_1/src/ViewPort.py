@@ -56,7 +56,8 @@ class ViewPort:
             self.__canvas.create_line(*points[start_p], *points[end_p], fill=color, width=width)
 
 
-    def draw_curve(self, sub_curves: list[tuple[float]], color: str, width: float) -> None:
+    def draw_curve(self, sub_curves: list[tuple[float]],
+                   color: str, width: float) -> None:
         for sub_curve in sub_curves:
             for i in range(len(sub_curve) - 1):
                 line = [sub_curve[i], sub_curve[i + 1]]
