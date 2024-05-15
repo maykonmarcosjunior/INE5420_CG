@@ -9,6 +9,8 @@ from src.Objetos import Linha3D as L3D
 from src.Objetos import WireFrame as WF
 from src.Objetos import CurvaBezier as BC
 from src.Objetos import CurvaBSpline as BSC
+from src.Objetos import BezierBicurve as BBC
+from src.Objetos import BSplineBicurve as BSB
 from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 import src.WindowUtilis.DisplayFile as DF
 import src.WindowUtilis.DrawWindow as DW
@@ -117,11 +119,16 @@ class App:
             print("Error in get_object:", e)
 
     def __create_object(self, name, coords, color, fill=False,
-                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value, edges:list[list[float]]=[]) -> Obj3D:
+                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value,
+                        edges:list[list[float]]=[]) -> Obj3D:
         if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
             output = BSC.CurvaBSpline(name, coords, color=color)
+        elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE.value:
+            output = BBC.BezierBicurve(name, coords, color=color, curves=edges)
+        elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE.value:
+            output = BSB.BSplineBicurve(name, coords, color=color, curves=edges)
         elif len(coords) == 1:
             output = P3D.Ponto3D(name, coords, color=color)
         elif len(coords) == 2:
