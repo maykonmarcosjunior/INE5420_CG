@@ -224,14 +224,13 @@ class Objeto3D(ABC):
 
         return R
 
-    def calculate_perspective_normalized_coords(self, d: int, normalize_matrix: np.ndarray):
+    def calculate_perspective_normalized_coords(self, d: int, mper: np.ndarray, normalize_matrix: np.ndarray):
         normalized_coords = []
         for x, y, z in self.__coords:
             if z < d:
                 print(f"A coordenada z do objeto é menor do que o mínimo desenhado (mínimo = {d}, z = {z})")
                 return []
-
-            w = 1 + z / d
+            x, y, z, w = np.dot(mper, [x, y, z, 1])
             normalized_coord = np.dot([x / w, y / w, d, 1], normalize_matrix)
             normalized_coords.append([normalized_coord[0], normalized_coord[1]])
 

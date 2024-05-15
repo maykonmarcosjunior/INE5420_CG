@@ -85,6 +85,10 @@ class Transformator:
         return self.__dop
 
     @property
+    def perspective_matrix(self) -> np.ndarray:
+        return self.__mper
+
+    @property
     def scaling_factor(self) -> float:
         return self.__scaling_factor
 
