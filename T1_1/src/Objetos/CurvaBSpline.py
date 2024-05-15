@@ -15,7 +15,10 @@ class CurvaBSpline(Objeto3D):
         # As coordenadas guardadas são os pontos de controle
 
         self.__MBS = (
-            np.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]) / 6
+            np.array([[-1, 3, -3, 1],
+                      [3, -6, 3, 0],
+                      [-3, 0, 3, 0],
+                      [1, 4, 1, 0]]) / 6
         )
 
         self.__delta = 0.1
