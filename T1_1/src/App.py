@@ -114,8 +114,8 @@ class App:
                 return
             edges = []
             f_coords = []
-            if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE.value,
-                            Obj3D.ObjectType.BSPLINE_BICURVE.value]:
+            if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE,
+                            Obj3D.ObjectType.BSPLINE_BICURVE]:
                 f_coords = self.__parse_bicurve_string(coords)
             else:
                 f_coords = self.__string_to_float_tuple_list(coords)
@@ -130,13 +130,13 @@ class App:
     def __create_object(self, name, coords, color, fill=False,
                         obj_type: int=Obj3D.ObjectType.OBJECT3D.value,
                         edges:list[list[float]]=[]) -> Obj3D:
-        if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
+        if obj_type == Obj3D.ObjectType.BEZIER_CURVE:
             output = BC.CurvaBezier(name, coords, obj_type, color=color)
-        elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
+        elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE:
             output = BSC.CurvaBSpline(name, coords, obj_type, color=color)
-        elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE.value:
+        elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE:
             output = BBC.BezierBicurve(name, coords, obj_type, color, edges)
-        elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE.value:
+        elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE:
             output = BSB.BSplineBicurve(name, coords, obj_type, color, edges)
         elif len(coords) == 1:
             output = P3D.Ponto3D(name, coords, obj_type, color=color)

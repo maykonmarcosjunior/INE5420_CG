@@ -248,8 +248,8 @@ class Objeto3D(ABC):
             print("No coordinates defined for", name, ", defined as (0,0,0)")
             coords = [(0,0,0)]
         if obj_type not in [ObjectType.POINT, ObjectType.LINE,
-                                 ObjectType.WIREFRAME, ObjectType.OBJECT3D,
-                                 ObjectType.BEZIER_CURVE, ObjectType.BSPLINE_CURVE]:
+                            ObjectType.WIREFRAME, ObjectType.OBJECT3D,
+                            ObjectType.BEZIER_CURVE, ObjectType.BSPLINE_CURVE]:
             print("Invalid object type", obj_type)
             print("Object type not defined for", name, ", automatically guessed")
             if len(coords) == 1:

@@ -46,7 +46,7 @@ class Window:
         elif object.obj_type in [Obj3D.ObjectType.BEZIER_CURVE, Obj3D.ObjectType.BSPLINE_CURVE]:
             self.draw_curve(object.generate_curve(obj_coords), object.color)
         elif object.obj_type in [Obj3D.ObjectType.BEZIER_BICURVE, Obj3D.ObjectType.BSPLINE_BICURVE]:
-            self.draw_curve(obj_coords, object.color)
+            self.draw_bicurve(object.generate_curves(obj_coords), object.color)
 
     def draw_point(self, coords: tuple[float], color: str) -> None:
         # if the point is outside the window, it is not drawn
@@ -67,9 +67,10 @@ class Window:
         self.__viewport.draw_curve(self.__clipper.clip_curve(coords),
                                    color, self.__width_drawings)
 
-    def draw_bicurve(self, coords: list[tuple[float]], color: str) -> None:
+    def draw_bicurve(self, coords: list[list[list[float]]], color: str) -> None:
         for curve in coords:
             self.draw_curve(curve, color)
+
     
     def __update_width_drawings(self):
         self.__width_drawings = 2 * self.__transformator.scaling_factor
