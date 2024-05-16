@@ -4,7 +4,7 @@ from src.Objetos.Objeto3D import ObjectType
 
 
 class DrawWindow(tk.Toplevel):
-    def __init__(self, master=None, height=400, width=600):
+    def __init__(self, master=None, height=800, width=1200):
         super().__init__(master)
         self.__coordinates_str = None  # Value to be returned
         self.__name_str = None
@@ -21,20 +21,29 @@ class DrawWindow(tk.Toplevel):
         frame_obj_type.pack(pady=10)
 
         tk.Label(frame_obj_type, text="Object Type: ").pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Objeto 3D", variable=self.__object_type_var,
+        tk.Radiobutton(frame_obj_type, text="Objeto 3D",
+                       variable=self.__object_type_var,
                        value=ObjectType.OBJECT3D.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Curva de Bézier", variable=self.__object_type_var,
+        tk.Radiobutton(frame_obj_type, text="Curva de Bézier",
+                       variable=self.__object_type_var,
                        value=ObjectType.BEZIER_CURVE.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Curva B-Spline", variable=self.__object_type_var,
+        tk.Radiobutton(frame_obj_type, text="Curva B-Spline",
+                       variable=self.__object_type_var,
                        value=ObjectType.BSPLINE_CURVE.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Bicurva de Bézier",
+                       variable=self.__object_type_var,
+                       value=ObjectType.BEZIER_BICURVE.value).pack(side=tk.LEFT)
+        tk.Radiobutton(frame_obj_type, text="Bicurva B-Spline",
+                       variable=self.__object_type_var,
+                       value=ObjectType.BSPLINE_BICURVE.value).pack(side=tk.LEFT)
 
         tk.Label(self, text="Name:").pack()
         self.__object_name = tk.Entry(self)
         self.__object_name.pack(fill=tk.X, padx=20)
 
-        tk.Label(
-            self, text='Enter Coordinates (in the format "(x1, y1, z1),(x2, y2, z2),..."):'
-        ).pack(pady=(10, 0))
+        tk.Label(self,
+                 text=('Enter Coordinates (in the format "(x1, y1, z1),(x2, y2, z2),..."):' + 
+                 ' (for curves, enter the control points separated by ";")')).pack(pady=(10, 0))
         self.__coord_entry = tk.Entry(self)
         self.__coord_entry.pack(fill=tk.X, padx=20)
 
