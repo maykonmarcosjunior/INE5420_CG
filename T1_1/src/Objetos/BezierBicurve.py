@@ -41,20 +41,23 @@ class BezierBicurve(Objeto3D):
             ctrl_pts.append(np.array(curve))
         
         ctrl_pts = np.array(ctrl_pts)
-        #curves = [self.generate_curve(c) for c in ctrl_pts]
-        curves = self.calculate_piece(ctrl_pts)
-        curves.extend(self.calculate_piece(ctrl_pts.transpose(1, 0, 2)))
-        return curves
+        # curves = self.calculate_piece(ctrl_pts)
+        # curves.extend(self.calculate_piece(ctrl_pts.transpose(1, 0, 2)))
+        #vreturn curves
+        return self.generate_curve(ctrl_pts)
 
     def generate_curve(self, ctrl_pts:np.array) -> list[list[float]]:
         curve_pieces = []
         # The groups overlap to give the curve continuity
         N = len(ctrl_pts)
         L = N - 2 - (N - 1) % 3
-        for i in range(0, L, 3):
-            sub_matrix = [curve[i:i+4] for curve in ctrl_pts[i : i + 4]]
+        for i in range(0, N, 4):
+            sub_matrix = np.array([curve[i:i+4] for curve in ctrl_pts[i : i + 4]])
             curve_pieces.extend(
-                self.calculate_piece(np.array(sub_matrix))
+                self.calculate_piece(sub_matrix)
+            )
+            curve_pieces.extend(
+                self.calculate_piece(sub_matrix.transpose(1, 0, 2))
             )
         return curve_pieces
 
