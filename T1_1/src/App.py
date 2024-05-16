@@ -106,11 +106,20 @@ class App:
         try:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
-                messagebox.showinfo("Information",
-                            "The object was not created. Name and coordinates are required.")
+                messagebox.showinfo(
+                    "Information",
+                    "The object was not created.",
+                    "Name and coordinates are required."
+                    )
                 return
-            f_coords = self.__string_to_float_tuple_list(coords)
-            output = self.__create_object(name, f_coords, color, fill, obj_type)
+            edges = []
+            f_coords = []
+            if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE.value,
+                            Obj3D.ObjectType.BSPLINE_BICURVE.value]:
+                f_coords = self.__parse_bicurve_string(coords)
+            else:
+                f_coords = self.__string_to_float_tuple_list(coords)
+            output = self.__create_object(name, f_coords, color, fill, obj_type, edges)
             self.__update_display_file(output)
             return output
 
@@ -122,23 +131,23 @@ class App:
                         obj_type: int=Obj3D.ObjectType.OBJECT3D.value,
                         edges:list[list[float]]=[]) -> Obj3D:
         if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
-            output = BC.CurvaBezier(name, coords, color=color)
+            output = BC.CurvaBezier(name, coords, obj_type, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
-            output = BSC.CurvaBSpline(name, coords, color=color)
+            output = BSC.CurvaBSpline(name, coords, obj_type, color=color)
         elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE.value:
-            output = BBC.BezierBicurve(name, coords, color=color, curves=edges)
+            output = BBC.BezierBicurve(name, coords, obj_type, color, edges)
         elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE.value:
-            output = BSB.BSplineBicurve(name, coords, color=color, curves=edges)
+            output = BSB.BSplineBicurve(name, coords, obj_type, color, edges)
         elif len(coords) == 1:
-            output = P3D.Ponto3D(name, coords, color=color)
+            output = P3D.Ponto3D(name, coords, obj_type, color=color)
         elif len(coords) == 2:
-            output = L3D.Linha3D(name, coords, color=color)
+            output = L3D.Linha3D(name, coords, obj_type, color=color)
         else:
-            output = WF.WireFrame(name, coords, color=color, fill=fill, edges=edges)
+            output = WF.WireFrame(name, coords, obj_type, color, fill, edges)
 
         return output
 
-    def __string_to_float_tuple_list(self, string):
+    def __string_to_float_tuple_list(self, string:str):
         # Remover parênteses externos e dividir a string em substrings de tuplas
         tuples = string.strip("()").split("),(")
         # Converter cada substring em uma tupla de floats
@@ -148,6 +157,17 @@ class App:
 
         return tuple_list
 
+    def __parse_bicurve_string(self, string:str):
+        # dividir a string em substrings de curvas
+        curves = string.split(";")
+        # Converter cada substring em uma lista de tuplas de floats
+        curve_list = []
+        for c in curves:
+            curve = self.__string_to_float_tuple_list(c)
+            curve_list.append(curve)
+
+        return curve_list
+    
     def __open_draw_window(self):
         self.__draw_window = DW.DrawWindow(self.__root)
         name, coords, color, fill, obj_type = self.__draw_window.show_window()
