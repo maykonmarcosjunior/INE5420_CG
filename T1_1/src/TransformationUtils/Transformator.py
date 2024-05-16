@@ -1,5 +1,5 @@
 import numpy as np
-from src.Objetos.Objeto3D import Objeto3D
+from src.Objetos.Ponto3D import Ponto3D
 from math import sqrt
 
 class Transformator:
@@ -22,7 +22,7 @@ class Transformator:
         self.__scaling_factor = 1
 
         self._normal_matrix = None
-        self.obj = Objeto3D("generic_obj", [(0,0,0)])
+        self.obj = Ponto3D("generic_obj")
         # view up vector
         self.__viewup = np.array([0, 1, 0, 1])
         self.__viewup_angle = 0
