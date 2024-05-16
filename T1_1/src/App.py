@@ -103,7 +103,7 @@ class App:
         
 
     def __get_object(self) -> list[tuple[float]]:
-        try:
+        if True: #try:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo(
@@ -122,9 +122,9 @@ class App:
             self.__update_display_file(output)
             return output
 
-        except Exception as e:
+        '''except Exception as e:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
-            print("Error in get_object:", e)
+            print("Error in get_object:", e)'''
 
     def __create_object(self, name, coords, color, fill=False,
                         obj_type: int=Obj3D.ObjectType.OBJECT3D.value) -> Obj3D:

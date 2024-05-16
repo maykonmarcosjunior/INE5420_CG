@@ -35,11 +35,12 @@ class BezierBicurve(Objeto3D):
         n_root = int(math.sqrt(NN))
         if n_root**2 != NN:
             raise ValueError("The number of control points is not a perfect square")
-        ctrl_pts = np.zeros((n_root, n_root, 3))
+        ctrl_pts = []
         for i in range(n_root):
-            for j in range(n_root):
-                ctrl_pts[i, j] = np.array(ctrl_pts_[i*n_root + j])
+            curve = [np.array(ctrl_pts_[i*n_root + j]) for j in range(n_root)]
+            ctrl_pts.append(np.array(curve))
         
+        ctrl_pts = np.array(ctrl_pts)
         curves = [self.generate_curve(c) for c in ctrl_pts]
         ctrl_pts.transpose()
         for c in ctrl_pts:
@@ -55,7 +56,6 @@ class BezierBicurve(Objeto3D):
             curve_pieces.extend(
                 self.calculate_piece(np.array(ctrl_pts[i : i + 4]))
             )
-
         return curve_pieces
 
 
@@ -73,10 +73,15 @@ class BezierBicurve(Objeto3D):
         SMB = np.matmul(S, self.__MB)
         TT = self.params(t)
         MTT = np.matmul(self.__MB.transpose(), TT)
+        print('S', S)
+        print('SBM', SMB)
+        print('G', G[:, 0])
+        print('MTT', MTT)
+        print('T', TT)
         x = SMB @ G[:, 0] @ MTT
         y = SMB @ G[:, 1] @ MTT
-        z = SMB @ G[:, 2] @ MTT
-        return [x, y, z]
+        #z = SMB @ G[:, 2] @ MTT
+        return [x, y]
 
 
     def params(self, u: float, N=4):
