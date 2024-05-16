@@ -17,7 +17,7 @@ class ObjectType(Enum):
 
 class Objeto3D(ABC):
     def __init__(self, name: str, coords: list[tuple[float]],
-                 obj_type=ObjectType.OBJECT3D, color="#000000",
+                 obj_type=ObjectType.OBJECT3D.value, color="#000000",
                  edges:list[tuple[int]] = []):
         self.__name = None
         self.__coords = None
@@ -226,11 +226,13 @@ class Objeto3D(ABC):
 
         return R
 
-    def calculate_perspective_normalized_coords(self, d: int, mper: np.ndarray, normalize_matrix: np.ndarray):
+    def calculate_perspective_normalized_coords(self, d: int, mper: np.ndarray,
+                                                normalize_matrix: np.ndarray):
         normalized_coords = []
         for x, y, z in self.__coords:
             if z < d:
-                print(f"A coordenada z do objeto é menor do que o mínimo desenhado (mínimo = {d}, z = {z})")
+                print("A coordenada z do objeto é menor do",
+                      f"que o mínimo desenhado (mínimo = {d}, z = {z})")
                 return []
             x, y, z, w = np.dot(mper, [x, y, z, 1])
             normalized_coord = np.dot([x / w, y / w, d, 1], normalize_matrix)
@@ -247,11 +249,10 @@ class Objeto3D(ABC):
         if len(coords) == 0:
             print("No coordinates defined for", name, ", defined as (0,0,0)")
             coords = [(0,0,0)]
-        if obj_type not in [ObjectType.POINT, ObjectType.LINE,
-                            ObjectType.WIREFRAME, ObjectType.OBJECT3D,
-                            ObjectType.BEZIER_CURVE, ObjectType.BSPLINE_CURVE]:
+        if obj_type not in [i for i in list(
+                            ObjectType.__members__.values())]:
             print("Invalid object type", obj_type)
-            print("Object type not defined for", name, ", automatically guessed")
+            print("Object type not defined for", name, "-> automatically guessed")
             if len(coords) == 1:
                 obj_type = ObjectType.POINT
             elif len(coords) == 2:
@@ -263,14 +264,13 @@ class Objeto3D(ABC):
             obj_type = ObjectType.POINT
         if len(coords) == 2 and obj_type != ObjectType.LINE:
             print("Wrong object type")
-            obj_type = ObjectType.LINE
-        if len(coords) > 2 and obj_type not in [ObjectType.WIREFRAME,
-                                                ObjectType.BEZIER_CURVE,
-                                                ObjectType.BSPLINE_CURVE]:
+            obj_type = ObjectType.LINE.value
+        if len(coords) > 2 and obj_type in [ObjectType.POINT,
+                                            ObjectType.LINE]:
             print("Wrong object type")
             obj_type = ObjectType.WIREFRAME
-        if (obj_type == ObjectType.BEZIER_CURVE
-            or obj_type == ObjectType.BSPLINE_CURVE) and len(coords) < 4:
+        if obj_type in [ObjectType.BEZIER_CURVE,
+                        ObjectType.BSPLINE_CURVE] and len(coords) < 4:
             added_points = [(randint(-1000, 1000),
                              randint(-1000, 1000),
                              randint(-1000, 1000)) for _ in range(4 - len(coords))]
