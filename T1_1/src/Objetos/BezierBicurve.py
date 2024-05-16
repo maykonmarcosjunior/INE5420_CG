@@ -28,7 +28,7 @@ class BezierBicurve(Objeto3D):
              [1, 0, 0, 0]
             ]
         )
-        self.__n_points = 100
+        self.__n_points = 50
 
     def generate_curves(self, ctrl_pts_) -> list[list[list[float]]]:
         NN = len(ctrl_pts_)
@@ -41,10 +41,9 @@ class BezierBicurve(Objeto3D):
             ctrl_pts.append(np.array(curve))
         
         ctrl_pts = np.array(ctrl_pts)
-        curves = [self.generate_curve(c) for c in ctrl_pts]
-        ctrl_pts.transpose()
-        for c in ctrl_pts:
-            curves.append(self.generate_curve(c))
+        #curves = [self.generate_curve(c) for c in ctrl_pts]
+        curves = self.calculate_piece(ctrl_pts)
+        curves.extend(self.calculate_piece(ctrl_pts.transpose(1, 0, 2)))
         return curves
 
     def generate_curve(self, ctrl_pts:np.array) -> list[list[float]]:
@@ -53,19 +52,22 @@ class BezierBicurve(Objeto3D):
         N = len(ctrl_pts)
         L = N - 2 - (N - 1) % 3
         for i in range(0, L, 3):
+            sub_matrix = [curve[i:i+4] for curve in ctrl_pts[i : i + 4]]
             curve_pieces.extend(
-                self.calculate_piece(np.array(ctrl_pts[i : i + 4]))
+                self.calculate_piece(np.array(sub_matrix))
             )
         return curve_pieces
 
 
     def calculate_piece(self, G:np.array) -> list[list[float]]:
         param_values = np.linspace(0, 1, self.__n_points)
-        sub_curve = []
+        sub_curves = []
         for s in param_values:
+            sub_curve = []
             for t in param_values:
                 sub_curve.append(self.Q(s, t, G))
-        return sub_curve
+            sub_curves.append(sub_curve)    
+        return sub_curves
 
 
     def Q(self, s:float, t:float, G:np.array) -> list[float]:
@@ -73,15 +75,9 @@ class BezierBicurve(Objeto3D):
         SMB = np.matmul(S, self.__MB)
         TT = self.params(t)
         MTT = np.matmul(self.__MB.transpose(), TT)
-        print('S', S)
-        print('SBM', SMB)
-        print('G', G[:, 0])
-        print('MTT', MTT)
-        print('T', TT)
-        x = SMB @ G[:, 0] @ MTT
-        y = SMB @ G[:, 1] @ MTT
-        #z = SMB @ G[:, 2] @ MTT
-        return [x, y]
+        x = SMB @ G[:, :, 0] @ MTT
+        y = SMB @ G[:, :, 1] @ MTT
+        return x, y
 
 
     def params(self, u: float, N=4):
