@@ -112,14 +112,13 @@ class App:
                     "Name and coordinates are required."
                     )
                 return
-            edges = []
             f_coords = []
             if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE.value,
                             Obj3D.ObjectType.BSPLINE_BICURVE.value]:
                 f_coords = self.__parse_bicurve_string(coords)
             else:
                 f_coords = self.__string_to_float_tuple_list(coords)
-            output = self.__create_object(name, f_coords, color, fill, obj_type, edges)
+            output = self.__create_object(name, f_coords, color, fill, obj_type)
             self.__update_display_file(output)
             return output
 
@@ -128,23 +127,21 @@ class App:
             print("Error in get_object:", e)
 
     def __create_object(self, name, coords, color, fill=False,
-                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value,
-                        edges:list[list[float]]=[]) -> Obj3D:
+                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value) -> Obj3D:
         if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
             output = BSC.CurvaBSpline(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE.value:
-            output = BBC.BezierBicurve(name, coords, color=color, curves=edges)
+            output = BBC.BezierBicurve(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE.value:
-            output = BSB.BSplineBicurve(name, coords, color=color, curves=edges)
+            output = BSB.BSplineBicurve(name, coords, color=color)
         elif len(coords) == 1:
             output = P3D.Ponto3D(name, coords, color=color)
         elif len(coords) == 2:
             output = L3D.Linha3D(name, coords, color=color)
         else:
-            output = WF.WireFrame(name, coords, color=color, fill=fill, edges=edges)
-
+            output = WF.WireFrame(name, coords, color=color, fill=fill)
         return output
 
     def __string_to_float_tuple_list(self, string:str):

@@ -241,7 +241,7 @@ class Objeto3D(ABC):
         return normalized_coords
 
     def certify_format(self, name:str, coords_:list[tuple[float]],
-                       obj_type:str) -> tuple[str, np.array, ObjectType]:
+                       obj_type:ObjectType) -> tuple[str, np.array, ObjectType]:
         coords = coords_[:]
         if not isinstance(name, str):
             print("Invalid name for", name, ", renamed to 'obj'")
@@ -249,8 +249,7 @@ class Objeto3D(ABC):
         if len(coords) == 0:
             print("No coordinates defined for", name, ", defined as (0,0,0)")
             coords = [(0,0,0)]
-        if obj_type not in [i for i in list(
-                            ObjectType.__members__.values())]:
+        if obj_type.name not in ObjectType.__members__:
             print("Invalid object type", obj_type)
             print("Object type not defined for", name, "-> automatically guessed")
             if len(coords) == 1:
@@ -264,12 +263,12 @@ class Objeto3D(ABC):
             obj_type = ObjectType.POINT
         if len(coords) == 2 and obj_type != ObjectType.LINE:
             print("Wrong object type")
-            obj_type = ObjectType.LINE.value
+            obj_type = ObjectType.LINE
         if len(coords) > 2 and obj_type in [ObjectType.POINT,
                                             ObjectType.LINE]:
             print("Wrong object type")
             obj_type = ObjectType.WIREFRAME
-        if obj_type in [ObjectType.BEZIER_CURVE,
+        if obj_type.name in [ObjectType.BEZIER_CURVE,
                         ObjectType.BSPLINE_CURVE] and len(coords) < 4:
             added_points = [(randint(-1000, 1000),
                              randint(-1000, 1000),
