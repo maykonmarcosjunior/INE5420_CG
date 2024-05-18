@@ -4,7 +4,7 @@ from src.Objetos.Objeto3D import ObjectType
 
 
 class DrawWindow(tk.Toplevel):
-    def __init__(self, master=None, height=800, width=1200):
+    def __init__(self, master=None, height=600, width=900):
         super().__init__(master)
         self.__coordinates_str = None  # Value to be returned
         self.__name_str = None

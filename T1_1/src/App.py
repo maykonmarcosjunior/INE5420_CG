@@ -106,11 +106,7 @@ class App:
         if True: #try:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
-                messagebox.showinfo(
-                    "Information",
-                    "The object was not created.",
-                    "Name and coordinates are required."
-                    )
+                messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = []
             if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE.value,
