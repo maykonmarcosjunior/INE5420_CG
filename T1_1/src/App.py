@@ -9,8 +9,8 @@ from src.Objetos import Linha3D as L3D
 from src.Objetos import WireFrame as WF
 from src.Objetos import CurvaBezier as BC
 from src.Objetos import CurvaBSpline as BSC
-from src.Objetos import BezierBicurve as BBC
-from src.Objetos import BSplineBicurve as BSB
+from src.Objetos import BezierSurface as BBC
+from src.Objetos import BSplineSurface as BSB
 from src.OBJFileUtils import OBJParser as OBJP, OBJGenerator as OBJG
 import src.WindowUtilis.DisplayFile as DF
 import src.WindowUtilis.DrawWindow as DW
@@ -103,41 +103,41 @@ class App:
         
 
     def __get_object(self) -> list[tuple[float]]:
-        if True: #try:
+        try:
             name, coords, color, fill, obj_type = self.__open_draw_window()
             if name is None or coords is None or not name.strip() or not coords.strip():
                 messagebox.showinfo("Information", "The object was not created. Name and coordinates are required.")
                 return
             f_coords = []
-            if obj_type in [Obj3D.ObjectType.BEZIER_BICURVE.value,
-                            Obj3D.ObjectType.BSPLINE_BICURVE.value]:
-                f_coords = self.__parse_bicurve_string(coords)
+            if obj_type in [Obj3D.ObjectType.BEZIER_SURFACE.value,
+                            Obj3D.ObjectType.BSPLINE_SURFACE.value]:
+                f_coords = self.__parse_surface_string(coords)
             else:
                 f_coords = self.__string_to_float_tuple_list(coords)
             output = self.__create_object(name, f_coords, color, fill, obj_type)
             self.__update_display_file(output)
             return output
 
-        '''except Exception as e:
+        except Exception as e:
             messagebox.showinfo("Input Error", "Invalid input. Please try again.")
-            print("Error in get_object:", e)'''
+            print("Error in get_object:", e)
 
     def __create_object(self, name, coords, color, fill=False,
-                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value) -> Obj3D:
+                        obj_type: int=Obj3D.ObjectType.OBJECT3D.value, edges=[]) -> Obj3D:
         if obj_type == Obj3D.ObjectType.BEZIER_CURVE.value:
             output = BC.CurvaBezier(name, coords, color=color)
         elif obj_type == Obj3D.ObjectType.BSPLINE_CURVE.value:
             output = BSC.CurvaBSpline(name, coords, color=color)
-        elif obj_type == Obj3D.ObjectType.BEZIER_BICURVE.value:
-            output = BBC.BezierBicurve(name, coords, color=color)
-        elif obj_type == Obj3D.ObjectType.BSPLINE_BICURVE.value:
-            output = BSB.BSplineBicurve(name, coords, color=color)
+        elif obj_type == Obj3D.ObjectType.BEZIER_SURFACE.value:
+            output = BBC.BezierSurface(name, coords, color=color)
+        elif obj_type == Obj3D.ObjectType.BSPLINE_SURFACE.value:
+            output = BSB.BSplineSurface(name, coords, color=color)
         elif len(coords) == 1:
             output = P3D.Ponto3D(name, coords, color=color)
         elif len(coords) == 2:
             output = L3D.Linha3D(name, coords, color=color)
         else:
-            output = WF.WireFrame(name, coords, color=color, fill=fill)
+            output = WF.WireFrame(name, coords, color=color, fill=fill, edges=edges)
         return output
 
     def __string_to_float_tuple_list(self, string:str):
@@ -150,7 +150,7 @@ class App:
 
         return tuple_list
 
-    def __parse_bicurve_string(self, string:str):
+    def __parse_surface_string(self, string:str):
         # dividir a string em substrings de curvas
         curves = string.split(";")
         # Converter cada substring em uma lista de tuplas de floats

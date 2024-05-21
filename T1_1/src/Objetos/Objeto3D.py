@@ -11,8 +11,8 @@ class ObjectType(Enum):
     WIREFRAME = 4
     BEZIER_CURVE = 5
     BSPLINE_CURVE = 6
-    BEZIER_BICURVE = 7
-    BSPLINE_BICURVE = 8
+    BEZIER_SURFACE = 7
+    BSPLINE_SURFACE = 8
 
 
 class Objeto3D(ABC):

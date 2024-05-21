@@ -3,12 +3,12 @@ from src.Objetos.Objeto3D import Objeto3D, ObjectType
 import numpy as np
 
 
-class BSplineBicurve(Objeto3D):
+class BSplineSurface(Objeto3D):
     def __init__(
         self,
         name: str,
         coords: list[tuple[float]],
-        obj_type=ObjectType.BSPLINE_BICURVE,
+        obj_type=ObjectType.BSPLINE_SURFACE,
         color="#000000",
         curves: list[tuple[int]] = [],
     ):

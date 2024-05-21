@@ -10,9 +10,9 @@ Crie uma tela de entrada de dados onde você pode entrar com conjuntos de pontos
 O clipping é em 2D.
 """
 
-class BezierBicurve(Objeto3D):
+class BezierSurface(Objeto3D):
     def __init__(self, name: str, coords: list[list[tuple[float]]],
-                 obj_type=ObjectType.BEZIER_BICURVE, color="#000000",
+                 obj_type=ObjectType.BEZIER_SURFACE, color="#000000",
                  curves: list[tuple[int]]=[]):
         new_coords = []
         for curve in coords:
@@ -41,9 +41,6 @@ class BezierBicurve(Objeto3D):
             ctrl_pts.append(np.array(curve))
         
         ctrl_pts = np.array(ctrl_pts)
-        # curves = self.calculate_piece(ctrl_pts)
-        # curves.extend(self.calculate_piece(ctrl_pts.transpose(1, 0, 2)))
-        #vreturn curves
         return self.generate_curve(ctrl_pts)
 
     def generate_curve(self, ctrl_pts:np.array) -> list[list[float]]:
