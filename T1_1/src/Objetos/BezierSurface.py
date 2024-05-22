@@ -31,17 +31,20 @@ class BezierSurface(Objeto3D):
         self.__n_points = 50
 
     def generate_curves(self, ctrl_pts_) -> list[list[list[float]]]:
-        NN = len(ctrl_pts_)
-        n_root = int(math.sqrt(NN))
-        if n_root**2 != NN:
-            raise ValueError("The number of control points is not a perfect square")
-        ctrl_pts = []
-        for i in range(n_root):
-            curve = [np.array(ctrl_pts_[i*n_root + j]) for j in range(n_root)]
-            ctrl_pts.append(np.array(curve))
-        
-        ctrl_pts = np.array(ctrl_pts)
-        return self.generate_curve(ctrl_pts)
+        if len(ctrl_pts_) % 16 != 0:
+            raise ValueError("The number of control points must be divisible by 16.")
+
+        curves_list = []
+        for i in range(0, len(ctrl_pts_), 16):
+            current_curve = ctrl_pts_[i: i + 16]
+            ctrl_pts = []
+            for i in range(4):
+                curve = [np.array(current_curve[i*4 + j]) for j in range(4)]
+                ctrl_pts.append(np.array(curve))
+
+            ctrl_pts = np.array(ctrl_pts)
+            curves_list.extend(self.generate_curve(ctrl_pts))
+        return curves_list
 
     def generate_curve(self, ctrl_pts:np.array) -> list[list[float]]:
         curve_pieces = []
