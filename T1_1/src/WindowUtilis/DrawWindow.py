@@ -30,10 +30,10 @@ class DrawWindow(tk.Toplevel):
         tk.Radiobutton(frame_obj_type, text="Curva B-Spline",
                        variable=self.__object_type_var,
                        value=ObjectType.BSPLINE_CURVE.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Bicurva de Bézier",
+        tk.Radiobutton(frame_obj_type, text="Superfície de Bézier",
                        variable=self.__object_type_var,
                        value=ObjectType.BEZIER_SURFACE.value).pack(side=tk.LEFT)
-        tk.Radiobutton(frame_obj_type, text="Bicurva B-Spline",
+        tk.Radiobutton(frame_obj_type, text="Superfície B-Spline",
                        variable=self.__object_type_var,
                        value=ObjectType.BSPLINE_SURFACE.value).pack(side=tk.LEFT)
 
