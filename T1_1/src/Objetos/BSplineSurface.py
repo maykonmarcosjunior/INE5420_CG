@@ -26,6 +26,9 @@ class BSplineSurface(Objeto3D):
     def generate_curves(self, ctrl_pts_) -> list[list[list[float]]]:
         NN = len(ctrl_pts_)
         n_root = int(math.sqrt(NN))
+        if n_root < 4 or n_root > 20:
+            raise ValueError("The control points matrix must be between 4x4 and 20x20 in size")
+
         if n_root**2 != NN:
             raise ValueError("The number of control points is not a perfect square")
         ctrl_pts = []
