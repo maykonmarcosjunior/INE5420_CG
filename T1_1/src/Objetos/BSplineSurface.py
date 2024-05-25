@@ -31,15 +31,20 @@ class BSplineSurface(Objeto3D):
 
         if n_root**2 != NN:
             raise ValueError("The number of control points is not a perfect square")
-        ctrl_pts = []
-        for i in range(n_root):
-            curve = [np.array(ctrl_pts_[i * n_root + j]) for j in range(n_root)]
-            ctrl_pts.append(np.array(curve))
 
-        ctrl_pts = np.array(ctrl_pts)
-        return self.generate_curve(ctrl_pts, n_root)
+        curves = []
+        for i in range(n_root - 3):
+            for j in range(n_root - 3):
+                submatrix = []
+                for k in range(4):
+                    row_start = (i + k) * n_root + j
+                    row_end = row_start + 4
+                    submatrix.append(ctrl_pts_[row_start:row_end])
+                    print(row_start, row_end)
+                curves.extend(self.generate_curve(np.array(submatrix)))
+        return curves
 
-    def generate_curve(self, ctrl_points, matrix_dim: int) -> list[list[list[float]]]:
+    def generate_curve(self, ctrl_points) -> list[list[list[float]]]:
         points = []
 
         NS = NT = 20
@@ -49,22 +54,21 @@ class BSplineSurface(Objeto3D):
         E_s = self.__get_delta_matrix(DS)
         E_t = self.__get_delta_matrix(DT).transpose()
 
-        for i in range(matrix_dim - 3):
-            G = np.array(ctrl_points[i : i + 4])
-            g_x, g_y = G[:, :, 0], G[:, :, 1]
+        G = np.array(ctrl_points)
+        g_x, g_y = G[:, :, 0], G[:, :, 1]
 
-            c_x = self.__MBS @ g_x @ self.__MBS.transpose()
-            c_y = self.__MBS @ g_y @ self.__MBS.transpose()
+        c_x = self.__MBS @ g_x @ self.__MBS.transpose()
+        c_y = self.__MBS @ g_y @ self.__MBS.transpose()
 
-            DDx = E_s @ c_x @ E_t
-            DDy = E_s @ c_y @ E_t
+        DDx = E_s @ c_x @ E_t
+        DDy = E_s @ c_y @ E_t
 
-            # Copy the arrays to use later
-            DDx2 = np.copy(DDx).T
-            DDy2 = np.copy(DDy).T
+        # Copy the arrays to use later
+        DDx2 = np.copy(DDx).T
+        DDy2 = np.copy(DDy).T
 
-            points.extend(self.__create_subcurve(DDx, DDy, NS, NT))
-            points.extend(self.__create_subcurve(DDx2, DDy2, NT, NS))
+        points.extend(self.__create_subcurve(DDx, DDy, NS, NT))
+        points.extend(self.__create_subcurve(DDx2, DDy2, NT, NS))
 
         return points
 
