@@ -17,8 +17,6 @@ class BSplineSurface(Objeto3D):
             new_coords.extend(curve)
         super().__init__(name, new_coords, obj_type, color, curves)
 
-        # As coordenadas guardadas são os pontos de controle
-
         self.__MBS = (
             np.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]) / 6
         )
@@ -40,7 +38,6 @@ class BSplineSurface(Objeto3D):
                     row_start = (i + k) * n_root + j
                     row_end = row_start + 4
                     submatrix.append(ctrl_pts_[row_start:row_end])
-                    print(row_start, row_end)
                 curves.extend(self.generate_curve(np.array(submatrix)))
         return curves
 
@@ -63,7 +60,6 @@ class BSplineSurface(Objeto3D):
         DDx = E_s @ c_x @ E_t
         DDy = E_s @ c_y @ E_t
 
-        # Copy the arrays to use later
         DDx2 = np.copy(DDx).T
         DDy2 = np.copy(DDy).T
 
